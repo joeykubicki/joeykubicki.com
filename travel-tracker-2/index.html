@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expedition — A Travel Atlas</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT@9..144,300..900,0..100&family=Inter+Tight:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+    defer
+  ></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="masthead">
+    <div class="masthead__inner">
+      <div class="masthead__title">
+        <span class="masthead__ornament" aria-hidden="true">✦</span>
+        <h1>Expedition</h1>
+        <span class="masthead__sub">a travel atlas</span>
+      </div>
+
+      <div class="masthead__right">
+        <!-- Sign in / account controls (populated by app.js) -->
+        <div class="account" id="account" aria-live="polite"></div>
+
+        <div class="stats" id="stats" aria-live="polite">
+          <span class="stats__num" id="statsCount">0</span>
+          <span class="stats__divider">of</span>
+          <span class="stats__total" id="statsTotal">0</span>
+          <span class="stats__label" id="statsLabel">visited</span>
+        </div>
+      </div>
+    </div>
+
+    <nav class="tabs" role="tablist" aria-label="Travel categories">
+      <button class="tab is-active" role="tab" data-view="parks" aria-selected="true">
+        <span class="tab__num">01</span>
+        <span class="tab__label">National Parks</span>
+      </button>
+      <button class="tab" role="tab" data-view="states" aria-selected="false">
+        <span class="tab__num">02</span>
+        <span class="tab__label">US States</span>
+      </button>
+      <button class="tab" role="tab" data-view="countries" aria-selected="false">
+        <span class="tab__num">03</span>
+        <span class="tab__label">Countries</span>
+      </button>
+    </nav>
+  </header>
+
+  <main class="layout">
+    <section class="map-pane" aria-label="Map">
+      <div class="map-pane__chrome">
+        <span class="map-pane__caption" id="mapCaption">North America</span>
+        <button class="reset-btn" id="resetBtn" title="Reset all visited for this category">
+          Reset
+        </button>
+      </div>
+      <div id="map" class="map"></div>
+      <div class="legend">
+        <span class="legend__item"><span class="legend__swatch legend__swatch--unvisited"></span>Not visited</span>
+        <span class="legend__item"><span class="legend__swatch legend__swatch--visited"></span>Visited</span>
+      </div>
+    </section>
+
+    <aside class="list-pane" aria-label="List of places">
+      <div class="list-pane__head">
+        <label class="search">
+          <svg class="search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="M21 21l-4.3-4.3"/>
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search places..."
+            autocomplete="off"
+          />
+        </label>
+        <div class="list-pane__filter">
+          <button class="filter is-active" data-filter="all">All</button>
+          <button class="filter" data-filter="visited">Visited</button>
+          <button class="filter" data-filter="todo">To go</button>
+        </div>
+      </div>
+
+      <ul class="place-list" id="placeList"></ul>
+
+      <div class="list-pane__foot">
+        <p class="hint" id="emptyHint" hidden>No matches.</p>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Saved Memories modal -->
+  <div class="memo-overlay" id="memoOverlay" hidden>
+    <div class="memo-modal" role="dialog" aria-modal="true" aria-labelledby="memoPlace">
+      <button class="memo-close" id="memoClose" title="Close" aria-label="Close">×</button>
+
+      <div class="memo-head">
+        <span class="memo-eyebrow" id="memoEyebrow">National Park</span>
+        <h2 class="memo-place" id="memoPlace">Place</h2>
+      </div>
+
+      <div class="memo-body">
+        <label class="memo-label" for="memoNotes">Notes</label>
+        <textarea class="memo-notes" id="memoNotes" placeholder="What do you want to remember about this place?"></textarea>
+
+        <!-- Parks: Favorite Hikes; States/Countries: Favorite Cities (free-text) -->
+        <div class="memo-list" id="memoListWrap">
+          <label class="memo-label" id="memoListLabel">Favorite Hikes</label>
+          <div id="memoListRows"></div>
+          <button class="memo-add" id="memoAdd" type="button">+ Add another</button>
+        </div>
+
+        <div class="memo-list">
+          <label class="memo-label" id="memoFavLabel">Favorite Memories</label>
+          <div id="memoFavRows"></div>
+          <button class="memo-add" id="memoFavAdd" type="button">+ Add another</button>
+        </div>
+      </div>
+
+      <div class="memo-foot">
+        <span class="memo-status" id="memoStatus" aria-live="polite"></span>
+        <button class="memo-save" id="memoSave" type="button">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loader" id="loader" aria-hidden="true">
+    <div class="loader__inner">
+      <div class="loader__dot"></div>
+      <div class="loader__dot"></div>
+      <div class="loader__dot"></div>
+      <span>Drawing the map…</span>
+    </div>
+  </div>
+
+  <footer class="colophon">
+    <span>Sign in with Google to save your map to your account. Map data from OpenStreetMap & Natural Earth.</span>
+  </footer>
+
+  <!-- type="module" is required: app.js imports the Firebase SDK -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>

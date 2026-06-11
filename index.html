@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Joey Kubicki</title>
+  <link rel="icon" type="image/png" href="photos/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="layout">
+
+  <!-- ── MOBILE HEADER ── -->
+  <header class="mobile-header">
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="mobile-name">Joey Kubicki</span>
+  </header>
+  <div class="mobile-overlay" id="mobile-overlay"></div>
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar" id="sidebar">
+
+    <div class="profile-wrap">
+      <img src="https://joeykubicki.com/photos/joey-headshot.jpeg" alt="Joey Kubicki" />
+    </div>
+
+    <nav>
+      <button class="nav-btn active" data-target="about">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+        </svg>
+        About Me
+      </button>
+      <button class="nav-btn" data-target="travel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>
+        </svg>
+        Travel
+      </button>
+      <button class="nav-btn" data-target="projects">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Projects
+      </button>
+      <button class="nav-btn" data-target="resume">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="8" y1="13" x2="16" y2="13"/>
+          <line x1="8" y1="17" x2="16" y2="17"/>
+        </svg>
+        Resume Details
+      </button>
+    </nav>
+
+    <div class="sidebar-bottom">
+      <a href="https://github.com/joeykubicki" target="_blank" class="github-btn">
+    <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+    </svg>
+    GitHub
+  </a>
+      <a href="https://www.linkedin.com/in/joey-kubicki-21ba99b0/" target="_blank" class="linkedin-btn">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+          <path d="M20.45 20.45h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.354V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+        LinkedIn
+      </a>
+      <div class="sidebar-footer">Joey Kubicki · 2026</div>
+    </div>
+
+  </aside>
+
+  <!-- ── MAIN ── -->
+  <main class="main">
+
+    <!-- ══ ABOUT ME ══ -->
+    <section id="about" class="section active">
+      <div class="section-header">
+        <div class="section-label">Welcome</div>
+        <h1 class="section-title">About Me</h1>
+      </div>
+      <div class="newspaper-grid">
+
+        <!-- TILE 1 — real photo -->
+        <div class="news-tile">
+          <div class="tile-photo">
+            <img src="https://joeykubicki.com/photos/about-me-me.jpeg" alt="About me" />
+          </div>
+          <div class="tile-body">
+            <div class="tile-kicker">Introduction</div>
+            <div class="tile-headline">Who I Am</div>
+            <p class="tile-copy">My name is Joey Kubicki and I was born and raised in Columbus, Ohio (Go Buckeyes!). After graduating from Harvard University I moved to San Francisco, but have also lived in Seattle and New York City since then. 
+              I have a 6 year old Australian Shepherd named Bandit and we enjoy traveling, hiking, and exploring new areas together - we've done multiple roadtrips around the country and have spent significant time in Idaho, Salt Lake City, Denver and San Diego. </p>
+          </div>
+        </div>
+
+        <!-- TILE 2 — placeholder -->
+        <div class="news-tile">
+          <div class="tile-photo">
+            <div class="tile-photo">
+            <img src="https://joeykubicki.com/photos/wil-1.jpeg" alt="Joey with his Bike" />
+          </div>
+          </div>
+          <div class="tile-body">
+            <div class="tile-kicker">Passions</div>
+            <div class="tile-headline">What I Love</div>
+            <p class="tile-copy">I love biking - to explore new cities and areas, to push myself on hard climbs and long distances, and to relax and unwind after a long day.
+              I've been lucky to complete Seattle to Portland and Cincinatti to Cleveland, and one day hope to make an SF to LA ride! I also have a love/hate relationship with running and have finished 3 marathons (SF, Seattle, Honolulu) - hopefully that's it. 
+              I also enjoy camping, hiking, bowling, disc golf and basketball. My creative outlets include photography, pottery and cooking. Traveling and experiencing new cultures and foods is one of my greatest pleasures - since college I've been lucky to visit 31 countries!
+               </p>
+          </div>
+        </div>
+
+        <!-- TILE 3 — placeholder -->
+        <div class="news-tile">
+          <div class="tile-body">
+            <div class="tile-kicker">Career</div>
+            <div class="tile-headline">What I Do</div>
+            <p class="tile-copy">I graduated from Harvard with a degree in Computer Science and have spent the first 8 years of my career working in customer-facing, Technical Operations 
+              with Enterprise clients across retail, hotel, travel, B2B, banking, healthcare, media, nonprofit, automotive and software industries.<br><br>
+              
+              At Adobe I spent 3 years working closely with Adobe's Digital Marketing Cloud customers designing and building implementations for their website analytics, first/third-party data management and onsite personalization tools.
+              
+              <br><br>I pivoted to the payments industry 3 years ago and owned the technical relationship for some of Stripe's largest customers with custom API integrations. I worked direclty with their APIs 
+              and partnered closely with product teams as they built, tested, and rolled out new features. I focoused on custom onboarding integrations (KYC), risk, card network fees, and core Payment/Billing APIs.</p>
+
+              <br>
+              <div class="tile-headline">Where I'm Headed</div>
+              <p class="tile-copy">After a year long sabbatical I'm excited to take the next step in my career! I'm looking to continue my work in technical operations, but am interested in shifting closer to the Product side of house.
+                I have spent 8 years working directly with customers, and I want to use that experience to influence and contribute to product strategy. I enjoy seeings things from beginning to end and want to join a company where I can
+                either work directly in Product Operations or continue my close work with customers in a role that partners closely with the Product teams.
+
+              </p>
+          </div>
+        </div>
+
+                    <div class="news-tile">
+              <div class="tile-photo tile-carousel">
+                <div class="carousel-track" id="track-bandit">
+                  <div class="carousel-slide-pair">
+                    <div class="pair-photo">
+                      <img src="https://joeykubicki.com/photos/bandit-1.jpg" alt="Bandit" />
+                    </div>
+                    <div class="pair-photo">
+                      <img src="https://joeykubicki.com/photos/bandit-2.jpg" alt="Bandit" />
+                    </div>
+                  </div>
+                  <div class="carousel-slide-pair">
+                    <div class="pair-photo">
+                      <img src="https://joeykubicki.com/photos/bandit-3.jpeg" alt="Bandit" />
+                    </div>
+                    <div class="pair-photo">
+                      <img src="https://joeykubicki.com/photos/bandit-4.jpg" alt="Bandit" />
+                    </div>
+                  </div>
+                  <div class="carousel-slide-pair">
+                    <div class="pair-photo">
+                      <img src="https://joeykubicki.com/photos/bandit-5.jpg" alt="Bandit" />
+                    </div>
+                    <div class="pair-photo">
+                      <img src="https://joeykubicki.com/photos/bandit-6.jpeg" alt="Bandit" />
+                    </div>
+                  </div>
+                </div><!-- closes carousel-track -->
+                <button class="carousel-btn carousel-prev" onclick="slidePair('bandit',-1)">&#8249;</button>
+                <button class="carousel-btn carousel-next" onclick="slidePair('bandit', 1)">&#8250;</button>
+                <div class="carousel-dots" id="dots-bandit">
+                  <button class="carousel-dot active" onclick="goToPair('bandit',0)"></button>
+                  <button class="carousel-dot" onclick="goToPair('bandit',1)"></button>
+                  <button class="carousel-dot" onclick="goToPair('bandit',2)"></button>
+                </div>
+              </div><!-- closes tile-photo tile-carousel -->
+              <div class="tile-body">
+                <div class="tile-kicker">Doggy Dog</div>
+                <div class="tile-headline">About Bandit</div>
+                <p class="tile-copy">Bandit is what we call a good boy. He was born on Feb 29th, 2020 on farm in Ohio. He loves hiking, swimming and long walks on the beach. He's been on multiple cross-country roadtrips and has been to 21 different states.
+                  His favorite snacks are freeze-dried beef liver, bananas, peanut butter, strawberries, and frozen broccoli. Joey is his best friend.</p>
+              </div>
+            </div><!-- closes news-tile -->
+
+      </div>
+    </section>
+
+    <!-- ══ TRAVEL ══ -->
+    <section id="travel" class="section">
+      <div class="section-header">
+        <div class="section-label">Adventures</div>
+        <h1 class="section-title">Travel</h1>
+      </div>
+      <div class="trip-tiles">
+
+        <!-- TRIP 1: New Zealand -->
+        <div class="trip-tile">
+          <div class="trip-left">
+            <div class="trip-title">Australia & New Zealand</div>
+            <div class="trip-subtitle">January 2026</div>
+            <div class="trip-rule"></div>
+            <p class="trip-text">A week down under followed by a 12-day roadtrip through Middle Earth! I spent a week in Syndey relaxing at the beaches and exploring the city.
+              In a surreal moment, I was able to visit a viewpont of the Opera House and Harbour Bridge that I drew when I was in high school. After a warm week I headed over Christchurch, NZ
+              and picked up my solo campervan for a 12 day adventure. Every day was a mini adventure full of suprise - discovering all the local birds (best song goes to the Tui and most beautiful the Kea), 
+              jumping into the cold glacier lakes (miserably refreshing), hinking up into the mountains near glaciers and waterfalls, finding random disc golf courses in small towns and waking up at night only to 
+              find a sky full of bright stars and galaxies.
+              <br><br>
+              <strong>Highlights:</strong> Hking the Mueller Hut Route, Roy's Peak (for sunrise), and Gertrude's Saddle, seeing a Kea up close (world's only apline parrot), swimming in Lake Pukaki and Lake Wanaka
+            </p>
+          </div>
+          <div class="carousel" id="carousel-nz">
+            <div class="carousel-track" id="track-nz">
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/nz-3.jpg" alt="Sydney Opera House" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/nz-1.jpg" alt="Mt. Roy" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/nz-2.jpg" alt="New Zealand" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/nz-4.jpg" alt="New Zealand" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/nz-5.jpg" alt="New Zealand" />
+              </div>
+            </div>
+            <button class="carousel-btn carousel-prev" onclick="slide('nz',-1)">&#8249;</button>
+            <button class="carousel-btn carousel-next" onclick="slide('nz', 1)">&#8250;</button>
+            <div class="carousel-dots" id="dots-nz">
+              <button class="carousel-dot active" onclick="goTo('nz',0)"></button>
+              <button class="carousel-dot" onclick="goTo('nz',1)"></button>
+              <button class="carousel-dot" onclick="goTo('nz',2)"></button>
+              <button class="carousel-dot" onclick="goTo('nz',3)"></button>
+              <button class="carousel-dot" onclick="goTo('nz',4)"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLACEHOLDER 2 -->
+        <div class="trip-tile">
+          <div class="trip-left">
+            <div class="trip-title">Taiwan</div>
+            <div class="trip-subtitle">December 2025</div>
+            <div class="trip-rule"></div>
+            <p class="trip-text">A journey around the whole island! A two week trip quickly turned into a full month exploring - starting in Taipei and going clockwise through
+              Taichung, Tainan, Kaohsiung, Taitung, Hualien and back to Taipei. Countless bowls of beef noodle soup. More milk tea, peanut ice cream rolls and tofu pudding than 
+              I care to admit. Michelin recommended food around every corner and oftentimes just a simple food stall.
+              <br><br>
+              I'll miss the kind, respectful and genuine people. The ice cream truck jingles which were really the neighborhood trask pickups. 
+              Riding around town on the uBikes and exploring small alleyways for local coffee shops. And all the nature you could ask for! Beautiful ocean and mountain
+              backdrops. Monkeys running around the trails and butterflies crossing your path when you least expect it. A hiking and biking paradise~~
+              <br><br>
+              <strong>Highlights:</strong> Night markets (too many to list), biking through Taroko Gorge, NYE fireworks in front of Taipei Tower
+              <br>
+            </p>
+          </div>
+          <div class="carousel" id="carousel-tw">
+            <div class="carousel-track" id="track-tw">
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/tw-1.jpg" alt="Taipei Tower" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/tw-2.jpg" alt="Taroko Gorge" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/tw-3.jpg" alt="Taiwan" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/tw-4.jpg" alt="Taiwan />
+              </div>
+              <div class="carousel-slide">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>Photo 3</span>
+              </div>
+            </div>
+            <button class="carousel-btn carousel-prev" onclick="slide('tw',-1)">&#8249;</button>
+            <button class="carousel-btn carousel-next" onclick="slide('tw', 1)">&#8250;</button>
+            <div class="carousel-dots" id="dots-tw">
+              <button class="carousel-dot active" onclick="goTo('tw',0)"></button>
+              <button class="carousel-dot" onclick="goTo('tw',1)"></button>
+              <button class="carousel-dot" onclick="goTo('tw',2)"></button>
+              <button class="carousel-dot" onclick="goTo('tw',3)"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLACEHOLDER 3 -->
+        <div class="trip-tile">
+          <div class="trip-left">
+            <div class="trip-title">India & Hong Kong</div>
+            <div class="trip-subtitle">December 2026</div>
+            <div class="trip-rule"></div>
+            <p class="trip-text">Old and new! I had ~2 weeks to fill between my time in Nepal and Taiwan, so first decided to fly into Delhi so I could see the Taj Mahal.
+              Then I had a very nostalgic week in Hong Kong, which was the first place I ever solo-traveled to almost 10 years prior.
+              India was definitely chaotic, but so full of history and longstanding culture! The tuk tuks were speedy, the various forts and temples majestic, and the city centers
+              full of life. The Taj Mahal was an architectural masterpiece and I hope I can go back some day to explore more cities throughout India.
+              Hong Kong ended up being a reunion in so many ways! The timing was so crazy as I was able to meet up with two old college friends, one of my first post-grad, coworker buddies, and a friend from Seattle.
+              I revisited my favorite parks and walking paths in the city. My mom's side of the family is from HK so all the food carried a bit of that nostalgic taste.
+              <br><br>
+              <strong>Highlights: </strong>Sunrise at the Taj Mahal, local Punjabi cuisine (chole bhature), all the dim sum, Victoria Peak hike at night
+            </p>
+          </div>
+          <div class="carousel" id="carousel-ihk">
+            <div class="carousel-track" id="track-ihk">
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ihk-1.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ihk-2.jpg"/>
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ihk-3.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ihk-4.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ihk-5.jpg" />
+              </div>
+            </div>
+            <button class="carousel-btn carousel-prev" onclick="slide('ihk',-1)">&#8249;</button>
+            <button class="carousel-btn carousel-next" onclick="slide('ihk', 1)">&#8250;</button>
+            <div class="carousel-dots" id="dots-ihk">
+              <button class="carousel-dot active" onclick="goTo('ihk',0)"></button>
+              <button class="carousel-dot" onclick="goTo('ihk',1)"></button>
+              <button class="carousel-dot" onclick="goTo('ihk',2)"></button>
+              <button class="carousel-dot" onclick="goTo('ihk',3)"></button>
+              <button class="carousel-dot" onclick="goTo('ihk',4)"></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLACEHOLDER 4 -->
+        <div class="trip-tile">
+          <div class="trip-left">
+            <div class="trip-title">Nepal</div>
+            <div class="trip-subtitle">November 2025</div>
+            <div class="trip-rule"></div>
+            <p class="trip-text">Up, up and away! Nepal, you took my breath away (both figuratively and literally)! Flying into and out of the world's most dangerous airport, 
+              12 days of trekking between remote mountain towns, dodging yaks and donkeys on the trail, discovering new mountains each day, gasping for breath as we climbed up to 18,500ft,
+               and watching Mt. Everest glow in the sunset.
+              <br><br>
+              Making new friends in tea houses, huddling around the yak poo stoves for warmth, sleeping in the freezing cold (the single digit nights were something else), 
+              and eating way too much dal bhat and friend noodles with the green chili sauce (iykyk). Such a humbling and memorable experience to say the least! I'm not sure when, but I'll be back...
+              <br><br>
+              <strong>Hightlights: </strong>Shopping for gear in Thamel, Durbar Square, every single day of hiking...
+          </div>
+          <div class="carousel" id="carousel-np">
+            <div class="carousel-track" id="track-np">
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/np-1.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/np-2.jpg"/>
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/np-3.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/np-4.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/np-5.jpg" />
+              </div>
+            </div>
+            <button class="carousel-btn carousel-prev" onclick="slide('np',-1)">&#8249;</button>
+            <button class="carousel-btn carousel-next" onclick="slide('np', 1)">&#8250;</button>
+            <div class="carousel-dots" id="dots-np">
+              <button class="carousel-dot active" onclick="goTo('np',0)"></button>
+              <button class="carousel-dot" onclick="goTo('np',1)"></button>
+              <button class="carousel-dot" onclick="goTo('np',2)"></button>
+              <button class="carousel-dot" onclick="goTo('np',3)"></button>
+              <button class="carousel-dot" onclick="goTo('np',4)"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="trip-tile">
+          <div class="trip-left">
+            <div class="trip-title">Egypt and Turkey</div>
+            <div class="trip-subtitle">October 2025</div>
+            <div class="trip-rule"></div>
+            <p class="trip-text">Time for a history lesson! Egypt was truly a historical wonderland. Flew into Cairo first to see the Great Pyramids, headed down to Aswan and spent time in the Nubian villages, 
+              and then traveled up the Nile River towards Luxor stopping at dozens of temples and the Valley of the Kings. I tried camel meat (very delicious!), had mango tea with friendly strangers, and walked through
+              the old markets.
+              <br><br>
+              In Turkey I spent a week in Istanbul visiting the famous mosques, ate street corn and walked through the spice markets. I ran along the Sea of Marmara and took the ferries between Europe and Asia.
+              I flew to Cappadocia hiked around the fairy chimneys (cone shaped rock formations) and through the ancient valleys with no cell signal.
+              <br><br>
+              <strong>Highlights: </strong> Pyramids, Al-Muizz Street, Luxor Temple, hiking in the Red, Love and Pigeon Valleys
+            </p>
+          </div>
+          <div class="carousel" id="carousel-te">
+            <div class="carousel-track" id="track-te">
+            <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/te-1.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/te-2.jpg"/>
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/te-3.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/te-4.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/te-5.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/te-6.jpg" />
+              </div>
+            </div>
+            <button class="carousel-btn carousel-prev" onclick="slide('te',-1)">&#8249;</button>
+            <button class="carousel-btn carousel-next" onclick="slide('te', 1)">&#8250;</button>
+            <div class="carousel-dots" id="dots-te">
+              <button class="carousel-dot active" onclick="goTo('te',0)"></button>
+              <button class="carousel-dot" onclick="goTo('te',1)"></button>
+              <button class="carousel-dot" onclick="goTo('te',2)"></button>
+              <button class="carousel-dot" onclick="goTo('te',3)"></button>
+              <button class="carousel-dot" onclick="goTo('te',4)"></button>
+              <button class="carousel-dot" onclick="goTo('te',5)"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="trip-tile">
+          <div class="trip-left">
+            <div class="trip-title">Central to East Europe</div>
+            <div class="trip-subtitle">September 2025</div>
+            <div class="trip-rule"></div>
+            <p class="trip-text">I love trains! Started in Munich where I ran into some old friends, ate some meatloaf, sausage and schnitzel, and explored the city. I took a day trip to Salzburg, Austria where Mozart was born.
+              Then I headed to Prague where I explored the famouse Castle grounds and also biked 40km to a another rural castle. From there I went to Vienna and saw more palaces and beautiful architecture. 
+              I took a fun day at a local amusement park and then made my way to Budapest. Once again, more castles, parks, schnitzel and riverside walks. Fianlly, I flew over to Athens for a short trip to see
+              the famouse Acropolis and greek mythology landmarks - in addition, I took a day trip to a nearby island and rented a moped for the day to ride around from beach to beach.
+              <br><br>
+              <strong>Highlights: </strong>Seeing old friends in Munich, Fortress Hohensalzburg, biking to Karlštejn, Prater amusement park, walking across Budapest bridge, climbing up to the Acropolis
+
+            </p>
+          </div>
+          <div class="carousel" id="carousel-ce">
+            <div class="carousel-track" id="track-ce">
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ce-1.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ce-2.jpg"/>
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ce-3.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ce-4.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ce-5.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ce-6.jpg" />
+              </div>
+            </div>
+            <button class="carousel-btn carousel-prev" onclick="slide('ce',-1)">&#8249;</button>
+            <button class="carousel-btn carousel-next" onclick="slide('ce', 1)">&#8250;</button>
+            <div class="carousel-dots" id="dots-ce">
+              <button class="carousel-dot active" onclick="goTo('ce',0)"></button>
+              <button class="carousel-dot" onclick="goTo('ce',1)"></button>
+              <button class="carousel-dot" onclick="goTo('ce',2)"></button>
+              <button class="carousel-dot" onclick="goTo('ce',3)"></button>
+              <button class="carousel-dot" onclick="goTo('ce',4)"></button>
+              <button class="carousel-dot" onclick="goTo('ce',5)"></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="trip-tile">
+          <div class="trip-left">
+            <div class="trip-title">Iceland</div>
+            <div class="trip-subtitle">July 2025</div>
+            <div class="trip-rule"></div>
+            <p class="trip-text">11 days and 2000+ miles of driving around the Ring Road! What a beautiful , humbling and surreal adventure full of waterfalls, glaciers, volcanos, fjords and hot dogs. I rented a campervan in Reykjavík, stopped by the famouse Blue Lagoon for a dip and then started my journey counterclockwise. 
+              It was amazing how the terrain changed each day - I saw massive waterfalls and mossy canyons at the start with a bit of overcast weather. I walked along the cliffs of a nearby island spotting the Puffins visiting in the summer. As I made my way farther along the SE coast I ran into glaciers and a beach with giant chunks of ice 
+              floating onto shore. As I got farther up the East coast the weather became warm and summy and starting driving around the fjords with huge mountains. I got to drive down the famous road from Secret Life of Walter Mitty (the longboard scene) into Seydisfjordur 
+              where I went for a beautiful hike with nobody around. Then along the Northern part of the island I went inland through the valleys and saw (you guessed it) more waterfalls. On my last day before heading back to Reykjavík I was lucky enough to see an arctic fox!
+              <br><br>
+              <strong>Highlights: </strong>Svínafellsjökull Glacier, Mulagljufur Canyon, Diamond Beach, Puffins, waterfall and cliff-side campsites
+
+            </p>
+          </div>
+          <div class="carousel" id="carousel-ic">
+            <div class="carousel-track" id="track-ic">
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ic-1.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ic-2.jpg"/>
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ic-3.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ic-4.jpg" />
+              </div>
+              <div class="carousel-slide">
+                <img src="https://joeykubicki.com/photos/ic-5.jpg" />
+              </div>
+            </div>
+            <button class="carousel-btn carousel-prev" onclick="slide('ic',-1)">&#8249;</button>
+            <button class="carousel-btn carousel-next" onclick="slide('ic', 1)">&#8250;</button>
+            <div class="carousel-dots" id="dots-ic">
+              <button class="carousel-dot active" onclick="goTo('ic',0)"></button>
+              <button class="carousel-dot" onclick="goTo('ic',1)"></button>
+              <button class="carousel-dot" onclick="goTo('ic',2)"></button>
+              <button class="carousel-dot" onclick="goTo('ic',3)"></button>
+              <button class="carousel-dot" onclick="goTo('ic',4)"></button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══ PROJECTS ══ -->
+    <section id="projects" class="section">
+  <div class="section-header resume-header">
+    <div class="resume-header-left">
+      <div class="section-label">Work</div>
+      <h1 class="section-title">Projects</h1>
+    </div>
+    <a href="https://github.com/joeykubicki" target="_blank" class="download-btn">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+        <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/>
+      </svg>
+      View GitHub
+    </a>
+  </div>
+
+  <div class="newspaper-grid">
+    <!-- TILE 0 — Travel Tracker -->
+<div class="news-tile">
+  <div class="tile-photo">
+    <img src="https://joeykubicki.com/photos/travel-tracker-1.png" alt="Travel Tracker" />
+  </div>
+  <div class="tile-body">
+    <div class="tile-kicker">Web App / Firebase / Leaflet</div>
+    <div class="tile-headline">Travel Tracker</div>
+    <p class="tile-copy">A quick and easy application to track all of the National Parks, States, and Countries that you have visited 
+      with the ability to save memories and favorite parts about each area. Sign in using your Google Authentication to save your own profile!
+    </p>
+    <a href="/travel-tracker/" target="_blank" rel="noopener" class="tile-cta">
+      Give it a try!
+    </a>
+  </div>
+</div>
+
+    <!-- TILE 1 — Food Recs (single photo carousel) -->
+    <div class="news-tile">
+      <div class="tile-photo tile-carousel">
+        <div class="carousel-track" id="track-food">
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/food-recs-1.png" alt="" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/food-recs-2.png" alt="" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/food-recs-3.png" alt="" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/food-recs-4.png" alt="" />
+          </div>
+        </div><!-- closes carousel-track -->
+        <button class="carousel-btn carousel-prev" onclick="slide('food',-1)">&#8249;</button>
+        <button class="carousel-btn carousel-next" onclick="slide('food', 1)">&#8250;</button>
+        <div class="carousel-dots" id="dots-food">
+          <button class="carousel-dot active" onclick="goTo('food',0)"></button>
+          <button class="carousel-dot" onclick="goTo('food',1)"></button>
+          <button class="carousel-dot" onclick="goTo('food',2)"></button>
+          <button class="carousel-dot" onclick="goTo('food',3)"></button>
+        </div>
+      </div><!-- closes tile-photo tile-carousel -->
+      <div class="tile-body">
+        <div class="tile-kicker">Web App / JavaScript / APIs</div>
+        <div class="tile-headline">Food Reccommendations</div>
+        <p class="tile-copy">A personal project to help me find restaurant recommendations new cities! I've been wanting to get more experience using Claude code and also practice using APIs again - 
+          this web-app primarily uses the Google Maps and Places API to gather and display recommendations using an algorithm to pull top-rated restaurants in the city of your choice. I also built in
+          an "Ask AI" feature using the OpenAI API to provide another way of looking up more niche recommendations.
+        </p>
+      </div>
+    </div>
+
+    <!-- TILE 3 — Website (single photo) -->
+    <div class="news-tile">
+      <div class="tile-photo">
+        <img src="https://joeykubicki.com/photos/website-1.jpg" alt="Personal Website" />
+      </div>
+      <div class="tile-body">
+        <div class="tile-kicker">JavaScript / HTML / CSS</div>
+        <div class="tile-headline">Website</div>
+        <p class="tile-copy">Made the old-fashioned way! A quick refresher on web development to reaquint myself with JS/HTML/CSS and spinning up a new domain and server - plus some fun practicing my web design skills.</p>
+      </div>
+    </div>
+
+    <!-- TILE 2 — Math Flashcards (pair carousel) -->
+    <div class="news-tile">
+      <div class="tile-photo tile-carousel">
+        <div class="carousel-track" id="track-math">
+      <div class="carousel-slide-triple">
+        <div class="triple-photo">
+          <img src="https://joeykubicki.com/photos/mc-1.png" alt="Math Flashcards" />
+        </div>
+        <div class="triple-photo">
+          <img src="https://joeykubicki.com/photos/mc-2.png" alt="Math Flashcards" />
+        </div>
+        <div class="triple-photo">
+          <img src="https://joeykubicki.com/photos/mc-3.png" alt="Math Flashcards" />
+        </div>
+      </div>
+      <div class="carousel-slide-triple">
+        <div class="triple-photo">
+          <img src="https://joeykubicki.com/photos/mc-4.png" alt="Math Flashcards" />
+        </div>
+        <div class="triple-photo">
+          <img src="https://joeykubicki.com/photos/mc-5.png" alt="Math Flashcards" />
+        </div>
+        <div class="triple-photo">
+          <img src="https://joeykubicki.com/photos/mc-6.png" alt="Math Flashcards" />
+        </div>
+      </div>
+    </div>
+        <button class="carousel-btn carousel-prev" onclick="slidePair('math',-1)">&#8249;</button>
+        <button class="carousel-btn carousel-next" onclick="slidePair('math', 1)">&#8250;</button>
+        <div class="carousel-dots" id="dots-math">
+          <button class="carousel-dot active" onclick="goToPair('math',0)"></button>
+          <button class="carousel-dot" onclick="goToPair('math',1)"></button>
+        </div>
+      </div><!-- closes tile-photo tile-carousel -->
+      <div class="tile-body">
+        <div class="tile-kicker">iOS / Swift</div>
+        <div class="tile-headline">Math Flashcards</div>
+        <p class="tile-copy">I made an Android version of this mobile-app ~12 years ago. I have always been passionate about education technology and wanted to build a tool that kids could use to practice 
+          some basic arithmetic. I reworked the Android application into an iOS version where you can select from Addition, Subtraction, Multiplication and Division with adjustable difficulty settings. I also included some 
+          other challenge modes (percentages, square roots, order of operations) and allow users to save test results and high scores.
+        </p>
+      </div>
+    </div>
+
+    
+
+  </div><!-- closes newspaper-grid -->
+</section>
+
+    <!-- ══ RESUME ══ -->
+    <section id="resume" class="section">
+
+      <div class="section-header resume-header">
+        <div class="resume-header-left">
+          <div class="section-label">Background</div>
+          <h1 class="section-title">Resume Details</h1>
+        </div>
+        <a href="https://joeykubicki.com/Joey_Kubicki_Resume.pdf" download="Joey_Kubicki_Resume.pdf" class="download-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download Resume
+        </a>
+      </div>
+
+      <!-- WORK EXPERIENCE -->
+      <div class="resume-section">
+        <h2 class="resume-section-title">Work Experience</h2>
+
+        <!-- Stripe -->
+        <div class="resume-job">
+          <div class="resume-job-header">
+            <div class="resume-job-left">
+              <div class="resume-company">Stripe, Inc.</div>
+              <div class="resume-location">Technical Account Manager SaaS Platforms</div>
+            </div>
+            <div class="resume-job-right">
+              <div class="resume-role">New York, NY</div>
+              <div class="resume-dates">May 2022 – April 2025</div>
+            </div>
+          </div>
+          <ul class="resume-bullets">
+            <li>Accelerated the payment success of Stripe's largest users who process more than $100B dollars annually</li>
+            <li>Delivered strategic and data-driven business insights on merchant onboarding, payment performance, fraud prevention, risk management, 1099 tax reporting, and regulatory compliance.</li>
+            <li>Navigated cross-functional partnerships with product, engineering, and operations teams. Guided new feature requests and led rollouts, integration deployments, and managed key processing events.</li>
+            <li>Worked with Stripe's core Payments APIs, Billing features, KYC verifications, and card network fees.</li>
+            <li>Focused on top SaaS Platforms navigating custom API integrations that white-label the Stripe experience</li>
+            <li>Helped users update onboarding processes related to regulatory changes and risk-based assessments.</li>
+          </ul>
+        </div>
+
+        <div class="resume-divider"></div>
+
+        <!-- Adobe TAM -->
+        <div class="resume-job">
+          <div class="resume-job-header">
+            <div class="resume-job-left">
+              <div class="resume-company">Adobe Systems</div>
+              <div class="resume-location">Technical Account Manager</div>
+            </div>
+            <div class="resume-job-right">
+              <div class="resume-role">Seattle, WA</div>
+              <div class="resume-dates">March 2021 – April 2022</div>
+            </div>
+          </div>
+          <ul class="resume-bullets">
+            <li>Developed and executed plans to monitor overall technical health, drive solution adoption across the product suite, mitigate deployment risks, and validate solution architecture.</li>
+            <li>Led strategic roadmap and issue resolution conversations across internal product, engineering, consulting, and account teams, and facilitated communication back to customer senior leadership.</li>
+            <li>Identified and facilitated new opportunities for customers to engage with engineering, support, and consulting teams to drive product development.</li>
+          </ul>
+        </div>
+
+        <div class="resume-divider"></div>
+
+        <!-- Adobe Consultant -->
+        <div class="resume-job">
+          <div class="resume-job-header">
+            <div class="resume-job-left">
+              <div class="resume-company">Adobe Systems</div>
+              <div class="resume-location">Technical Consultant, Success Services</div>
+            </div>
+            <div class="resume-job-right">
+              <div class="resume-role">San Francisco, CA</div>
+              <div class="resume-dates">Jan 2019 – Feb 2021</div>
+            </div>
+          </div>
+          <ul class="resume-bullets">
+            <li>Designed and delivered tune-up programs to provide customers with technical updates, strategic guidance, and solution roadmaps to drive immediate and long-term value with their licensed solutions.</li>
+            <li>Collaborated with Adobe account teams to scope license renewals following the custom tune-up programs, resulting $2M+ in recurring book of business.</li>
+            <li>Developed digital marketing strategies for B2C and B2B customers across retail, hotel, travel, banking, healthcare, global media, and high-tech industries.</li>
+          </ul>
+        </div>
+
+        <div class="resume-divider"></div>
+
+        <!-- Adobe Implementation -->
+        <div class="resume-job">
+          <div class="resume-job-header">
+            <div class="resume-job-left">
+              <div class="resume-company">Adobe Systems</div>
+              <div class="resume-location">Technical Consultant, Implementation</div>
+            </div>
+            <div class="resume-job-right">
+              <div class="resume-role">San Francisco, CA</div>
+              <div class="resume-dates">July 2017 – Dec 2018</div>
+            </div>
+          </div>
+          <ul class="resume-bullets">
+            <li>Scoped and delivered solution implementations for Adobe's data management platform.</li>
+            <li>Connected customer data systems and built audiences for activation across search, social, and display marketing channels for both B2C and B2B customers.</li>
+            <li>Created and conducted customer facing and internal workshops as the subject-matter-expert for APIs, Identity Management, and the Experience Cloud Mobile SDK.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- EDUCATION -->
+      <div class="resume-section">
+        <h2 class="resume-section-title">Education</h2>
+        <div class="resume-job">
+          <div class="resume-job-header">
+            <div class="resume-job-left">
+              <div class="resume-company">Harvard University</div>
+              <div class="resume-location">Cambridge, MA</div>
+            </div>
+            <div class="resume-job-right">
+              <div class="resume-role">B.A. Computer Science</div>
+              <div class="resume-dates">2014 – 2017</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TECHNICAL & INTERESTS -->
+      <div class="resume-section">
+        <h2 class="resume-section-title">Technical Experience</h2>
+        <p class="resume-tags">APIs · SQL · Android/iOS · Java · Python · Web Development (HTML/CSS/JS)</p>
+      </div>
+
+      <div class="resume-section">
+        <h2 class="resume-section-title">Interests</h2>
+        <p class="resume-tags">Cycling · Running · Hiking · Pottery · Basketball · Camping · Traveling · Adventures with my dog</p>
+      </div>
+
+    </section>
+
+  </main>
+</div>
+
+<script src="main.js"></script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"3d6b1cee0ce046c19cf2cc5633c2451e","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
