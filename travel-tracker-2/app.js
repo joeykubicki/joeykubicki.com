@@ -561,13 +561,13 @@ import {
   const viewFitted = { parks: false, states: false, countries: false };
 
   const STYLE = {
-    land:         '#d9cbab',
-    landHover:    '#c9b78c',
+    land:         '#d7dbe0',   // was #d9cbab
+    landHover:    '#c3c9d1',   // was #c9b78c
     visited:      '#b34a26',
     visitedHover: '#8e3818',
     border:       '#1f2a20',
-    parkBase:     '#e8dcbe',
-    parkBorder:   '#b3a387'
+    parkBase:     '#e6e9ec',   // was #e8dcbe
+    parkBorder:   '#aeb5bd',   // was #b3a387
   };
 
   function initMap() {

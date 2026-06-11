@@ -5,19 +5,19 @@
    --------------------------------------------------------- */
 
 :root {
-  --bg:           #ede4d1;
-  --bg-paper:     #f6efde;
+  --bg:           #eceef0;
+  --bg-paper:     #f8f9fa; 
   --ink:          #1f2a20;
   --ink-soft:     #5a6258;
   --ink-faint:    #8a8a78;
-  --rule:         #cbbfa3;
-  --rule-strong:  #a89878;
+  --rule:         #d3d7dc; 
+  --rule-strong:  #b4bac1;
 
   --visited:      #b34a26;
   --visited-deep: #8e3818;
   --visited-soft: #f0c3a4;
 
-  --land:         #d9cbab;
+  --land:         #d7dbe0; 
   --land-hover:   #c9b78c;
   --water:        #d8ddd0;
 
@@ -55,7 +55,7 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   pointer-events: none;
-  background-image: radial-gradient(rgba(80,60,30,0.05) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(60,60,60,0.04) 1px, transparent 1px);
   background-size: 3px 3px;
   opacity: 0.6;
   z-index: 1;
