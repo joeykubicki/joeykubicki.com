@@ -139,6 +139,10 @@ import {
   // If firebase-config.js still has placeholder values, the app quietly
   // runs in local-only mode (the sign-in button is hidden). This lets
   // you develop/preview before doing the Firebase console setup.
+  // Google blocks sign-in inside in-app browsers (Messenger, Instagram, etc.)
+  const IN_APP_BROWSER = /FBAN|FBAV|Instagram|Snapchat|TikTok|musical_ly|Line\/|MicroMessenger/i
+    .test(navigator.userAgent);
+  
   const firebaseReady =
     firebaseConfig &&
     firebaseConfig.apiKey &&
@@ -338,6 +342,13 @@ import {
       wrap.querySelector('.account__name').textContent =
         currentUser.displayName || currentUser.email || 'Explorer';
       wrap.querySelector('#signOutBtn').addEventListener('click', doSignOut);
+    } else if (IN_APP_BROWSER) {
+      wrap.innerHTML = `
+        <span class="account__sync" id="syncStatus" title="Sync status"></span>
+        <span class="account__name" style="max-width:none;white-space:normal;">
+          To sign in, open this page in Safari or Chrome (tap ⋯ → Open in browser)
+        </span>
+      `;
     } else {
       wrap.innerHTML = `
         <span class="account__sync" id="syncStatus" title="Sync status"></span>
