@@ -1110,15 +1110,10 @@ input { font-family: inherit; }
   .masthead__sub {
     font-size: 13px;
   }
-  .masthead__right {
-    flex-direction: row;
-    align-items: center;
-    gap: 20px;
-  }
   .stats__num {
     font-size: 30px;
   }
-  .tabs {
+  .tabs-row {
     margin-top: 6px;
   }
   .tab {
@@ -1127,12 +1122,12 @@ input { font-family: inherit; }
   .tab__label {
     font-size: 15px;
   }
+}
 
-  .tabs-row {
+ .tabs-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   margin-top: 18px;
-}
 }
