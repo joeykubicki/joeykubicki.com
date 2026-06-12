@@ -87,7 +87,7 @@ input { font-family: inherit; }
   justify-content: space-between;
   align-items: flex-end;
   gap: 24px;
-  padding-bottom: 18px;
+  padding-bottom: 24px;
   border-bottom: 1px dotted var(--rule);
 }
 
@@ -216,7 +216,7 @@ input { font-family: inherit; }
   display: grid;
   grid-template-columns: 1fr 360px;
   gap: 0;
-  padding: 24px 36px;
+  padding: 24px 36px 12px;
 }
 
 .map-pane {
@@ -589,7 +589,7 @@ input { font-family: inherit; }
   position: relative;
   z-index: 2;
   text-align: center;
-  padding: 14px 36px 22px;
+  padding: 8px 36px 10px;
   font-size: 11px;
   color: var(--ink-faint);
   font-style: italic;
@@ -1097,7 +1097,7 @@ input { font-family: inherit; }
     padding: 12px 36px 0;
   }
   .masthead__inner {
-    padding-bottom: 8px;
+    padding-bottom: 12px;
     align-items: center;
   }
   .masthead h1 {
@@ -1114,7 +1114,7 @@ input { font-family: inherit; }
     font-size: 30px;
   }
   .tabs-row {
-    margin-top: 6px;
+    margin-top: 4px;
   }
   .tab {
     padding: 8px 18px 10px;
@@ -1124,10 +1124,14 @@ input { font-family: inherit; }
   }
 }
 
- .tabs-row {
+.tabs-row {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;        /* was center — pins both to the bottom */
   flex-wrap: wrap;
-  margin-top: 18px;
+  margin-top: 12px;             /* was 18px — see Fix 2 */
+}
+
+.tabs-row .stats {
+  padding-bottom: 9px;         /* sits the count on the tabs' baseline */
 }
