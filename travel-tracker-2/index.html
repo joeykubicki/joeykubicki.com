@@ -42,11 +42,22 @@
         <!-- Sign in / account controls (populated by app.js) -->
         <div class="account" id="account" aria-live="polite"></div>
       </div>
-    </div><!-- closes masthead__inner -->
+    </div>
 
     <div class="tabs-row">
       <nav class="tabs" role="tablist" aria-label="Travel categories">
-        <!-- ...the three tab buttons stay exactly as they are... -->
+        <button class="tab is-active" role="tab" data-view="parks" aria-selected="true">
+          <span class="tab__num">01</span>
+          <span class="tab__label">National Parks</span>
+        </button>
+        <button class="tab" role="tab" data-view="states" aria-selected="false">
+          <span class="tab__num">02</span>
+          <span class="tab__label">US States</span>
+        </button>
+        <button class="tab" role="tab" data-view="countries" aria-selected="false">
+          <span class="tab__num">03</span>
+          <span class="tab__label">Countries</span>
+        </button>
       </nav>
 
       <div class="stats" id="stats" aria-live="polite">
@@ -56,22 +67,6 @@
         <span class="stats__label" id="statsLabel">visited</span>
       </div>
     </div>
-    </div>
-
-    <nav class="tabs" role="tablist" aria-label="Travel categories">
-      <button class="tab is-active" role="tab" data-view="parks" aria-selected="true">
-        <span class="tab__num">01</span>
-        <span class="tab__label">National Parks</span>
-      </button>
-      <button class="tab" role="tab" data-view="states" aria-selected="false">
-        <span class="tab__num">02</span>
-        <span class="tab__label">US States</span>
-      </button>
-      <button class="tab" role="tab" data-view="countries" aria-selected="false">
-        <span class="tab__num">03</span>
-        <span class="tab__label">Countries</span>
-      </button>
-    </nav>
   </header>
 
   <main class="layout">
