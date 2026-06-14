@@ -748,9 +748,23 @@ input { font-family: inherit; }
     border-left: 1px solid var(--rule);
     border-top: none;
   }
-  .tabs { overflow-x: auto; }
+
   .tab { padding: 12px 14px; white-space: nowrap; }
   .tab__label { font-size: 15px; }
+  .tabs-row {
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+  .tabs-row .stats {
+    order: -1;            /* pull the count above the tabs */
+    width: 100%;
+    justify-content: flex-end;
+    padding-bottom: 6px;
+  }
+  .tabs {
+    width: 100%;
+    overflow-x: auto;
+  }
 }
 
 /* ---------- Saved Memories modal ---------- */
