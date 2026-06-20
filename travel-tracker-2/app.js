@@ -1,14 +1,20 @@
 /* ---------------------------------------------------------
    Expedition — A Travel Atlas
-   Now with Google sign-in + cloud sync (Firebase Auth + Firestore).
+   Google sign-in + cloud sync + link sharing (Firebase Auth + Firestore).
 
-   Storage model:
-   - Signed OUT  → everything saves to localStorage (same as before)
-   - Signed IN   → everything saves to Firestore at users/{uid},
-                   debounced; localStorage is left untouched so a
-                   shared computer never mixes two people's data.
-   - First sign-in with no cloud data → your existing localStorage
-     data is migrated up to the cloud automatically.
+   Storage model (signed in):
+   - maps/{uid}   → SHAREABLE: visited parks/states/countries +
+                    shareEnabled + shareToken + displayName
+   - users/{uid}  → PRIVATE: memories + savedFriends (never shared)
+   - shares/{tok} → PUBLIC lookup token -> uid (so a link can resolve)
+   Map and memories share the same uid key, so they stay correlated.
+
+   Signed out → everything saves to localStorage (same as before).
+   First sign-in with no cloud data → localStorage is migrated up.
+   Old single-doc accounts are auto-split into maps/ + users/ on load.
+
+   Guest view: opening ?m=TOKEN loads someone else's map READ-ONLY into a
+   separate state; your own data is never touched or overwritten.
    --------------------------------------------------------- */
 
 import { firebaseConfig } from './firebase-config.js';
@@ -27,6 +33,7 @@ import {
   doc,
   getDoc,
   setDoc,
+  deleteDoc,
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js';
 
@@ -130,7 +137,18 @@ import {
     search: '',
     visited: { parks: new Set(), states: new Set(), countries: new Set() },
     memories: { parks: {}, states: {}, countries: {} },
-    data: { states: null, countries: null }
+    data: { states: null, countries: null },
+
+    // ---- sharing / social (v2) ----
+    shareEnabled: false,
+    shareToken: null,
+    savedFriends: [],          // [{ token, name }]
+
+    // Guest mode: when viewing someone else's shared map. While active,
+    // `guest` holds THEIR visited sets and we render from those instead of
+    // `state.visited`. `state.visited` is never modified in guest mode.
+    guest: null,               // { name, token, visited:{parks,states,countries} }
+    compare: false             // overlay: own vs guest (only meaningful in guest mode)
   };
 
   // ============================================================
@@ -163,74 +181,111 @@ import {
     );
   }
 
-  function userDocRef() {
-    return doc(db, 'users', currentUser.uid);
-  }
+  // ---- Document references (split model) ----
+  function mapDocRef(uid)  { return doc(db, 'maps',  uid || currentUser.uid); }
+  function userDocRef(uid) { return doc(db, 'users', uid || currentUser.uid); }
+  function shareDocRef(token) { return doc(db, 'shares', token); }
 
-  // ---- Cloud save (debounced) ----
-  // Every toggle/memory-save calls saveData(). When signed in we wait a
-  // beat (so rapid clicking = one write, which keeps Firestore usage tiny)
-  // then push the whole profile document up.
-  const SAVE_DEBOUNCE_MS = 700;
-  let saveTimer = null;
-  let savePending = false;
-  let saveInFlight = false;
-
-  function serializeProfile() {
-    return {
-      schema: 1,
+  // The SHAREABLE document — visited lists + share settings only. No memories.
+  function serializeMap() {
+    const out = {
+      schema: 2,
       parks:     [...state.visited.parks],
       states:    [...state.visited.states],
       countries: [...state.visited.countries],
-      memories:  state.memories,
+      shareEnabled: !!state.shareEnabled,
       displayName: currentUser ? (currentUser.displayName || '') : '',
+      updatedAt: serverTimestamp()
+    };
+    // Only include the token field when one exists (avoids writing null)
+    if (state.shareToken) out.shareToken = state.shareToken;
+    return out;
+  }
+
+  // The PRIVATE document — memories + saved friends. Never shared.
+  function serializePrivate() {
+    return {
+      schema: 2,
+      memories: state.memories,
+      savedFriends: Array.isArray(state.savedFriends) ? state.savedFriends : [],
       updatedAt: serverTimestamp()
     };
   }
 
-  function applyProfile(data) {
+  function applyMapData(data) {
     ['parks', 'states', 'countries'].forEach(key => {
       state.visited[key] = new Set(Array.isArray(data[key]) ? data[key] : []);
     });
+    state.shareEnabled = !!data.shareEnabled;
+    state.shareToken   = data.shareToken || null;
+  }
+
+  function applyPrivateData(data) {
     state.memories = { parks: {}, states: {}, countries: {} };
-    if (data.memories && typeof data.memories === 'object') {
+    if (data && data.memories && typeof data.memories === 'object') {
       ['parks', 'states', 'countries'].forEach(key => {
         if (data.memories[key] && typeof data.memories[key] === 'object') {
           state.memories[key] = data.memories[key];
         }
       });
     }
+    state.savedFriends = (data && Array.isArray(data.savedFriends)) ? data.savedFriends : [];
   }
 
+  // Parse only the visited sets out of a map document (used for guest views,
+  // where we must NOT touch the signed-in user's own state).
+  function parseVisited(data) {
+    return {
+      parks:     new Set(Array.isArray(data.parks)     ? data.parks     : []),
+      states:    new Set(Array.isArray(data.states)    ? data.states    : []),
+      countries: new Set(Array.isArray(data.countries) ? data.countries : [])
+    };
+  }
+
+  // ---- Cloud save (debounced) ----
+  // Toggling a place dirties the MAP doc; editing memories dirties the PRIVATE
+  // doc; saving a friend dirties the PRIVATE doc. We track which is dirty so a
+  // map toggle doesn't needlessly rewrite memories and vice-versa.
+  const SAVE_DEBOUNCE_MS = 700;
+  let saveTimer = null;
+  let saveInFlight = false;
+  const dirty = { map: false, priv: false };
+
+  function anyDirty() { return dirty.map || dirty.priv; }
+
   function scheduleCloudSave() {
-    savePending = true;
     setSyncStatus('saving');
     clearTimeout(saveTimer);
     saveTimer = setTimeout(flushCloudSave, SAVE_DEBOUNCE_MS);
   }
 
   async function flushCloudSave() {
-    if (!currentUser || !savePending || saveInFlight) return;
+    if (!currentUser || !anyDirty() || saveInFlight) return;
     saveInFlight = true;
-    savePending = false;
+    const wasMap = dirty.map, wasPriv = dirty.priv;
+    dirty.map = false; dirty.priv = false;
     try {
-      await setDoc(userDocRef(), serializeProfile());
-      setSyncStatus(savePending ? 'saving' : 'saved');
+      const writes = [];
+      if (wasMap)  writes.push(setDoc(mapDocRef(),  serializeMap()));
+      if (wasPriv) writes.push(setDoc(userDocRef(), serializePrivate()));
+      await Promise.all(writes);
+      setSyncStatus(anyDirty() ? 'saving' : 'saved');
     } catch (e) {
       console.warn('[Expedition] cloud save failed', e);
-      savePending = true; // keep it dirty; retry shortly
+      dirty.map = dirty.map || wasMap;   // keep dirty; retry
+      dirty.priv = dirty.priv || wasPriv;
       setSyncStatus('error');
       clearTimeout(saveTimer);
       saveTimer = setTimeout(flushCloudSave, 4000);
     } finally {
       saveInFlight = false;
-      if (savePending && !saveTimer) scheduleCloudSave();
+      if (anyDirty() && !saveTimer) scheduleCloudSave();
     }
   }
 
   // Try to get unsaved changes out the door if the tab is being closed/hidden
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden' && savePending) {
+    if (document.visibilityState === 'hidden' && anyDirty()) {
       clearTimeout(saveTimer);
       flushCloudSave();
     }
@@ -263,27 +318,62 @@ import {
 
   async function doSignOut() {
     // Push any unsaved edits before the session ends
-    if (savePending) { clearTimeout(saveTimer); await flushCloudSave(); }
+    if (anyDirty()) { clearTimeout(saveTimer); await flushCloudSave(); }
     await signOut(auth);
     // onAuthStateChanged fires with null → we reload local data there
   }
 
   // Loads (or creates) the user's cloud profile after sign-in.
+  // Handles three cases: new split docs exist; an old single-doc account needs
+  // migrating; or a brand-new account that should inherit localStorage data.
   async function onSignedIn(user) {
     currentUser = user;
     renderAccount();
     setSyncStatus('loading');
     try {
-      const snap = await getDoc(userDocRef());
-      if (snap.exists()) {
-        applyProfile(snap.data());
+      const [mapSnap, userSnap] = await Promise.all([
+        getDoc(mapDocRef()),
+        getDoc(userDocRef())
+      ]);
+
+      const hasMap = mapSnap.exists();
+      const userData = userSnap.exists() ? userSnap.data() : null;
+      // An "old" account = users/{uid} written by v1 (it carried the visited
+      // arrays + a `memories` field, but there was no maps/{uid} yet).
+      const isOldSingleDoc = !hasMap && userData &&
+        (Array.isArray(userData.parks) || Array.isArray(userData.states) ||
+         Array.isArray(userData.countries));
+
+      if (hasMap) {
+        // Normal path — read both split docs.
+        applyMapData(mapSnap.data());
+        applyPrivateData(userData || {});
+      } else if (isOldSingleDoc) {
+        // ---- MIGRATION: split the old monolithic doc ----
+        // 1) Load everything from the old doc into memory.
+        applyMapData(userData);          // visited arrays (shareEnabled/token absent → defaults)
+        applyPrivateData(userData);      // memories (savedFriends absent → [])
+        // 2) Write the new MAP doc first and confirm it lands.
+        await setDoc(mapDocRef(), serializeMap());
+        // 3) Overwrite the private doc with the clean private-only shape,
+        //    dropping the now-migrated visited arrays. (Memories preserved.)
+        await setDoc(userDocRef(), serializePrivate());
+        console.info('[Expedition] migrated account to split map/private docs.');
       } else {
-        // First-ever sign-in on this account: migrate whatever this
-        // browser already had in localStorage up to the cloud, so the
-        // owner of the site doesn't lose their pre-login data.
+        // Brand-new account: inherit whatever this browser had locally.
         loadLocal();
-        await setDoc(userDocRef(), serializeProfile());
+        await Promise.all([
+          setDoc(mapDocRef(), serializeMap()),
+          setDoc(userDocRef(), serializePrivate())
+        ]);
       }
+
+      // Make sure we have a share token minted if sharing was already on
+      // (defensive — normally token + flag travel together).
+      if (state.shareEnabled && !state.shareToken) {
+        await enableSharing(true);  // silently (re)mint
+      }
+
       setSyncStatus('saved');
     } catch (e) {
       console.warn('[Expedition] could not load cloud profile', e);
@@ -294,7 +384,7 @@ import {
 
   function onSignedOut() {
     currentUser = null;
-    savePending = false;
+    dirty.map = false; dirty.priv = false;
     clearTimeout(saveTimer);
     renderAccount();
     setSyncStatus('local');
@@ -302,6 +392,9 @@ import {
     // their stuff lives only in their cloud profile)
     state.visited = { parks: new Set(), states: new Set(), countries: new Set() };
     state.memories = { parks: {}, states: {}, countries: {} };
+    state.shareEnabled = false;
+    state.shareToken = null;
+    state.savedFriends = [];
     loadLocal();
     refreshAll();
   }
@@ -332,6 +425,7 @@ import {
     if (currentUser) {
       wrap.innerHTML = `
         <span class="account__sync" id="syncStatus" title="Sync status"></span>
+        <button class="account__btn account__btn--share" id="shareBtn" type="button">Share</button>
         <img class="account__avatar" alt="" referrerpolicy="no-referrer" />
         <span class="account__name"></span>
         <button class="account__btn" id="signOutBtn" type="button">Sign out</button>
@@ -342,6 +436,7 @@ import {
       wrap.querySelector('.account__name').textContent =
         currentUser.displayName || currentUser.email || 'Explorer';
       wrap.querySelector('#signOutBtn').addEventListener('click', doSignOut);
+      wrap.querySelector('#shareBtn').addEventListener('click', openShareModal);
     } else if (IN_APP_BROWSER) {
       wrap.innerHTML = `
         <span class="account__sync" id="syncStatus" title="Sync status"></span>
@@ -385,6 +480,318 @@ import {
   }
 
   // ============================================================
+  // SHARING + SOCIAL (v2)
+  // ============================================================
+  // A share link looks like:  https://your.site/travel-tracker/?m=TOKEN
+  // The token resolves via shares/{token} -> uid -> maps/{uid}.
+
+  function randomToken() {
+    // 20 url-safe chars from crypto — unguessable, no uid exposed
+    const bytes = new Uint8Array(15);
+    crypto.getRandomValues(bytes);
+    return btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+
+  function shareUrlFor(token) {
+    const base = location.origin + location.pathname;
+    return `${base}?m=${encodeURIComponent(token)}`;
+  }
+
+  // Turn sharing on (mint a token + publish the lookup doc), or re-mint.
+  // `silent` skips the UI refresh (used during sign-in repair).
+  async function enableSharing(silent) {
+    if (!currentUser) return;
+    const token = state.shareToken || randomToken();
+    state.shareToken = token;
+    state.shareEnabled = true;
+    // Write the lookup doc + the map (now flagged shareEnabled) together.
+    await Promise.all([
+      setDoc(shareDocRef(token), { uid: currentUser.uid }),
+      setDoc(mapDocRef(), serializeMap())
+    ]);
+    if (!silent) renderShareModal();
+  }
+
+  // Turn sharing off — hard revoke. Removes the lookup doc so links die,
+  // and flips shareEnabled so even a bookmarked uid can't read the map.
+  async function disableSharing() {
+    if (!currentUser) return;
+    const token = state.shareToken;
+    state.shareEnabled = false;
+    const writes = [setDoc(mapDocRef(), serializeMap())];
+    if (token) writes.push(deleteDoc(shareDocRef(token)));
+    state.shareToken = null;
+    await Promise.all(writes);
+    renderShareModal();
+  }
+
+  // Regenerate: kill the old link, mint a fresh one.
+  async function regenerateShare() {
+    if (!currentUser) return;
+    const old = state.shareToken;
+    state.shareToken = randomToken();
+    state.shareEnabled = true;
+    const writes = [
+      setDoc(shareDocRef(state.shareToken), { uid: currentUser.uid }),
+      setDoc(mapDocRef(), serializeMap())
+    ];
+    if (old) writes.push(deleteDoc(shareDocRef(old)));
+    await Promise.all(writes);
+    renderShareModal();
+  }
+
+  // ---- Resolve + load a shared map (guest view) ----
+  // Returns { uid, visited, name } or throws / returns null if unavailable.
+  async function loadSharedMap(token) {
+    const lookup = await getDoc(shareDocRef(token));
+    if (!lookup.exists()) return null;            // bad/revoked token
+    const uid = lookup.data().uid;
+    const mapSnap = await getDoc(mapDocRef(uid));
+    if (!mapSnap.exists()) return null;
+    const data = mapSnap.data();
+    if (!data.shareEnabled) return null;          // sharing turned off
+    return {
+      uid,
+      token,
+      name: data.displayName || 'Explorer',
+      visited: parseVisited(data)
+    };
+  }
+
+  // Enter guest mode: render THEIR map read-only. Own state untouched.
+  async function openGuest(token) {
+    setSyncStatus(lastSync); // no change to own sync state
+    let result;
+    try { result = await loadSharedMap(token); }
+    catch (e) { console.warn('[Expedition] guest load failed', e); result = null; }
+
+    if (!result) {
+      showToast('That shared map is no longer available.');
+      return false;
+    }
+    state.guest = result;
+    state.compare = false;
+    renderGuestBanner();
+    // reset the view fit so their map frames nicely
+    viewFitted.parks = viewFitted.states = viewFitted.countries = false;
+    refreshAll();
+    return true;
+  }
+
+  function exitGuest() {
+    state.guest = null;
+    state.compare = false;
+    renderGuestBanner();
+    // Clean the ?m= param so a refresh doesn't re-enter guest mode
+    if (location.search.includes('m=')) {
+      history.replaceState(null, '', location.origin + location.pathname);
+    }
+    viewFitted.parks = viewFitted.states = viewFitted.countries = false;
+    refreshAll();
+  }
+
+  function toggleCompare() {
+    state.compare = !state.compare;
+    renderGuestBanner();
+    refreshAll();
+  }
+
+  // The visited-set the MAP should currently render for a category.
+  // Guest mode (no compare) → their set. Otherwise → your own.
+  function activeVisited(category) {
+    if (state.guest && !state.compare) return state.guest.visited[category];
+    return state.visited[category];
+  }
+
+  // In compare mode, classify a place: 'both' | 'mine' | 'theirs' | null
+  function compareClass(category, id) {
+    if (!state.guest || !state.compare) return null;
+    const mine = state.visited[category].has(id);
+    const theirs = state.guest.visited[category].has(id);
+    if (mine && theirs) return 'both';
+    if (mine) return 'mine';
+    if (theirs) return 'theirs';
+    return null;
+  }
+
+  // ---- Saved friends ----
+  function isFriendSaved(token) {
+    return state.savedFriends.some(f => f.token === token);
+  }
+
+  function saveFriend(token, name) {
+    if (!currentUser || isFriendSaved(token)) return;
+    state.savedFriends.push({ token, name: name || 'Explorer' });
+    savePrivate();
+    renderGuestBanner();
+    renderFriendsList();
+  }
+
+  function removeFriend(token) {
+    state.savedFriends = state.savedFriends.filter(f => f.token !== token);
+    savePrivate();
+    renderFriendsList();
+  }
+
+  // ---- Lightweight toast ----
+  let toastTimer = null;
+  function showToast(msg) {
+    let el = document.getElementById('toast');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'toast';
+      el.className = 'toast';
+      document.body.appendChild(el);
+    }
+    el.textContent = msg;
+    el.classList.add('is-visible');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('is-visible'), 2800);
+  }
+
+  // ============================================================
+  // SHARING UI (modal, guest banner, friends)
+  // ============================================================
+  function openShareModal() {
+    const overlay = document.getElementById('shareOverlay');
+    if (!overlay) return;
+    overlay.hidden = false;
+    requestAnimationFrame(() => overlay.classList.add('is-open'));
+    renderShareModal();
+    renderFriendsList();
+  }
+  function closeShareModal() {
+    const overlay = document.getElementById('shareOverlay');
+    overlay.classList.remove('is-open');
+    setTimeout(() => { overlay.hidden = true; }, 220);
+  }
+
+  function renderShareModal() {
+    const body = document.getElementById('shareBody');
+    if (!body) return;
+
+    if (!state.shareEnabled) {
+      body.innerHTML = `
+        <p class="share-copy">Sharing is <strong>off</strong>. Turn it on to get a link
+          that lets friends view your map (your notes and memories stay private).</p>
+        <button class="share-action share-action--primary" id="shareEnable">Turn on sharing</button>
+      `;
+      body.querySelector('#shareEnable').addEventListener('click', async (e) => {
+        e.target.disabled = true;
+        try { await enableSharing(false); }
+        catch (err) { console.warn(err); showToast('Could not enable sharing.'); e.target.disabled = false; }
+      });
+      return;
+    }
+
+    const url = shareUrlFor(state.shareToken);
+    body.innerHTML = `
+      <p class="share-copy">Sharing is <strong>on</strong>. Anyone with this link can view
+        your map (read-only). They can compare it with their own.</p>
+      <div class="share-linkrow">
+        <input class="share-link" id="shareLink" type="text" readonly value="${url}" />
+        <button class="share-action" id="shareCopy">Copy</button>
+      </div>
+      <div class="share-buttons">
+        <button class="share-action" id="shareRegen">Regenerate link</button>
+        <button class="share-action share-action--danger" id="shareDisable">Turn off</button>
+      </div>
+      <p class="share-fineprint">Regenerating makes the old link stop working. Turning off
+        hides your map from everyone immediately.</p>
+    `;
+    const linkEl = body.querySelector('#shareLink');
+    body.querySelector('#shareCopy').addEventListener('click', () => {
+      linkEl.select();
+      navigator.clipboard?.writeText(url).then(
+        () => showToast('Link copied!'),
+        () => { document.execCommand('copy'); showToast('Link copied!'); }
+      );
+    });
+    body.querySelector('#shareRegen').addEventListener('click', async (e) => {
+      if (!confirm('Regenerate the link? The current link will stop working.')) return;
+      e.target.disabled = true;
+      try { await regenerateShare(); showToast('New link generated.'); }
+      catch (err) { console.warn(err); showToast('Could not regenerate.'); e.target.disabled = false; }
+    });
+    body.querySelector('#shareDisable').addEventListener('click', async (e) => {
+      e.target.disabled = true;
+      try { await disableSharing(); }
+      catch (err) { console.warn(err); showToast('Could not turn off sharing.'); e.target.disabled = false; }
+    });
+  }
+
+  function renderFriendsList() {
+    const wrap = document.getElementById('friendsList');
+    if (!wrap) return;
+    if (!state.savedFriends.length) {
+      wrap.innerHTML = `<p class="share-fineprint">No saved friends yet. Open a friend's
+        share link, then tap “Save this friend” to keep it here.</p>`;
+      return;
+    }
+    wrap.innerHTML = '';
+    state.savedFriends.forEach(f => {
+      const row = document.createElement('div');
+      row.className = 'friend-row';
+      const name = document.createElement('button');
+      name.className = 'friend-open';
+      name.textContent = f.name || 'Explorer';
+      name.title = "Open this friend's map";
+      name.addEventListener('click', async () => {
+        closeShareModal();
+        const ok = await openGuest(f.token);
+        if (!ok) showToast(`${f.name}'s map link no longer works — ask for a new one.`);
+      });
+      const del = document.createElement('button');
+      del.className = 'friend-del';
+      del.textContent = '×';
+      del.title = 'Remove';
+      del.addEventListener('click', () => removeFriend(f.token));
+      row.appendChild(name);
+      row.appendChild(del);
+      wrap.appendChild(row);
+    });
+  }
+
+  // The banner across the top while viewing a friend's map.
+  function renderGuestBanner() {
+    let banner = document.getElementById('guestBanner');
+    if (!state.guest) {
+      if (banner) banner.remove();
+      document.body.classList.remove('is-guest');
+      return;
+    }
+    document.body.classList.add('is-guest');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'guestBanner';
+      banner.className = 'guest-banner';
+      document.body.insertBefore(banner, document.body.firstChild);
+    }
+    const saved = isFriendSaved(state.guest.token);
+    const canCompare = !!currentUser;
+    banner.innerHTML = `
+      <span class="guest-banner__label">Viewing <strong></strong>'s map</span>
+      <div class="guest-banner__actions">
+        ${canCompare ? `<button class="guest-btn ${state.compare ? 'is-on' : ''}" id="guestCompare">
+          ${state.compare ? '✓ Comparing' : 'Compare with mine'}</button>` : ''}
+        ${(currentUser && !saved) ? `<button class="guest-btn" id="guestSave">Save this friend</button>` : ''}
+        ${saved ? `<span class="guest-saved">★ Saved</span>` : ''}
+        <button class="guest-btn guest-btn--exit" id="guestExit">Exit</button>
+      </div>
+    `;
+    banner.querySelector('.guest-banner__label strong').textContent = state.guest.name;
+    banner.querySelector('#guestExit').addEventListener('click', exitGuest);
+    const cmp = banner.querySelector('#guestCompare');
+    if (cmp) cmp.addEventListener('click', toggleCompare);
+    const sv = banner.querySelector('#guestSave');
+    if (sv) sv.addEventListener('click', () => {
+      saveFriend(state.guest.token, state.guest.name);
+      showToast(`Saved ${state.guest.name}.`);
+    });
+  }
+
+  // ============================================================
   // STORAGE
   // ============================================================
   // Local (signed-out) persistence — unchanged from the original app
@@ -417,12 +824,18 @@ import {
     catch (e) { console.warn('save failed', e); }
   }
 
-  // Single entry point used everywhere a save is needed.
-  // Signed in → debounced cloud write. Signed out → localStorage.
-  function saveData() {
-    if (currentUser) scheduleCloudSave();
+  // Save entry points. Signed in → mark the right doc dirty + debounce.
+  // Signed out → localStorage (which holds everything together, as before).
+  function saveMap() {
+    if (currentUser) { dirty.map = true; scheduleCloudSave(); }
     else saveLocal();
   }
+  function savePrivate() {
+    if (currentUser) { dirty.priv = true; scheduleCloudSave(); }
+    else saveLocal();
+  }
+  // Back-compat alias: anything that changed visited places.
+  function saveData() { saveMap(); }
 
   // True if a place has any saved memory content
   function hasMemory(category, id) {
@@ -579,6 +992,10 @@ import {
     border:       '#1f2a20',
     parkBase:     '#e6e9ec',   // was #e8dcbe
     parkBorder:   '#aeb5bd',   // was #b3a387
+    // compare overlay (own vs guest)
+    cmpBoth:      '#6b4226',   // been to both — deep terracotta-brown
+    cmpMine:      '#b34a26',   // only you
+    cmpTheirs:    '#3f7cac'    // only them — blue
   };
 
   function initMap() {
@@ -611,15 +1028,37 @@ import {
     };
   }
 
+  // Fill color for a region given the current mode (normal / guest / compare).
+  function regionFill(category, id) {
+    if (state.guest && state.compare) {
+      const cls = compareClass(category, id);
+      if (cls === 'both')   return STYLE.cmpBoth;
+      if (cls === 'mine')   return STYLE.cmpMine;
+      if (cls === 'theirs') return STYLE.cmpTheirs;
+      return STYLE.land;
+    }
+    return activeVisited(category).has(id) ? STYLE.visited : STYLE.land;
+  }
+
+  function regionStyleFor(category, id) {
+    return {
+      fillColor: regionFill(category, id),
+      weight: 0.7,
+      color: STYLE.border,
+      fillOpacity: 1,
+      opacity: 0.55
+    };
+  }
+
   // Google-Maps-style pin icon as an SVG divIcon
   function makePin(opts = {}) {
-    const { size = 'md', visited = true } = opts;
+    const { size = 'md', visited = true, color = null } = opts;
     const dims = size === 'sm'
       ? { w: 16, h: 24, anchor: 23, dot: 2.6 }
       : { w: 22, h: 32, anchor: 31, dot: 3.5 };
-    const fill   = visited ? STYLE.visited      : '#f6efde';
-    const stroke = visited ? STYLE.visitedHover : '#5a6258';
-    const dotCol = visited ? '#f6efde'          : STYLE.visited;
+    const fill   = color || (visited ? STYLE.visited : '#f6efde');
+    const stroke = color ? color : (visited ? STYLE.visitedHover : '#5a6258');
+    const dotCol = visited || color ? '#f6efde' : STYLE.visited;
     return L.divIcon({
       html: `<svg viewBox="0 0 24 36" xmlns="http://www.w3.org/2000/svg" width="${dims.w}" height="${dims.h}">
   <path d="M12 0 C5.4 0 0 5.4 0 12 C0 21 12 36 12 36 S24 21 24 12 C24 5.4 18.6 0 12 0 Z"
@@ -657,12 +1096,13 @@ import {
     clearLayers();
     if (!state.data.states) return;
     currentLayer = L.geoJSON(state.data.states, {
-      style: f => regionStyle(state.visited.states.has(f.properties.name)),
+      style: f => regionStyleFor('states', f.properties.name),
       onEachFeature: (f, layer) => {
         const name = f.properties.name;
         layer.on({
           mouseover: e => {
-            const v = state.visited.states.has(name);
+            if (state.guest && state.compare) return; // keep compare colors stable
+            const v = activeVisited('states').has(name);
             e.target.setStyle({ fillColor: v ? STYLE.visitedHover : STYLE.landHover });
           },
           mouseout: e => currentLayer.resetStyle(e.target)
@@ -682,13 +1122,14 @@ import {
     if (!state.data.countries) return;
 
     currentLayer = L.geoJSON(state.data.countries, {
-      style: f => regionStyle(state.visited.countries.has(f.properties.name)),
+      style: f => regionStyleFor('countries', f.properties.name),
       onEachFeature: (f, layer) => {
         const name = f.properties.name;
         if (!name) return;
         layer.on({
           mouseover: e => {
-            const v = state.visited.countries.has(name);
+            if (state.guest && state.compare) return;
+            const v = activeVisited('countries').has(name);
             e.target.setStyle({ fillColor: v ? STYLE.visitedHover : STYLE.landHover });
           },
           mouseout: e => currentLayer.resetStyle(e.target)
@@ -698,14 +1139,29 @@ import {
       }
     }).addTo(map);
 
-    // Place a Google-Maps-style pin at the centroid of every visited country
+    // Pin every visited country. In compare mode, pin the union (both maps),
+    // colored by who: both / mine / theirs.
+    const pinSet = state.compare && state.guest
+      ? null  // handled per-feature below
+      : activeVisited('countries');
     state.data.countries.features.forEach(f => {
       const name = f.properties.name;
-      if (!name || !state.visited.countries.has(name)) return;
+      if (!name) return;
+      let show = false, pinColor = STYLE.visited;
+      if (state.compare && state.guest) {
+        const cls = compareClass('countries', name);
+        if (cls) {
+          show = true;
+          pinColor = cls === 'both' ? STYLE.cmpBoth : cls === 'mine' ? STYLE.cmpMine : STYLE.cmpTheirs;
+        }
+      } else if (pinSet.has(name)) {
+        show = true;
+      }
+      if (!show) return;
       const centroid = regionCentroid(f.geometry);
       if (!centroid) return;
       const pin = L.marker(centroid, {
-        icon: makePin({ size: 'md', visited: true }),
+        icon: makePin({ size: 'md', visited: true, color: pinColor }),
         interactive: false,
         keyboard: false
       });
@@ -741,12 +1197,21 @@ import {
     }
 
     PARKS.forEach(park => {
-      const visited = state.visited.parks.has(park.id);
       const latlng = parkDisplayCoord(park);
-      const marker = L.marker(latlng, {
-        icon: makeTree(visited),
-        riseOnHover: true
-      });
+      let icon;
+      if (state.guest && state.compare) {
+        // Compare mode: colored pin if either visited, else a faint unvisited tree
+        const cls = compareClass('parks', park.id);
+        if (cls) {
+          const c = cls === 'both' ? STYLE.cmpBoth : cls === 'mine' ? STYLE.cmpMine : STYLE.cmpTheirs;
+          icon = makePin({ size: 'sm', visited: true, color: c });
+        } else {
+          icon = makeTree(false);
+        }
+      } else {
+        icon = makeTree(activeVisited('parks').has(park.id));
+      }
+      const marker = L.marker(latlng, { icon, riseOnHover: true });
       marker.bindTooltip(park.name, { direction: 'top', offset: [0, -20] });
       marker.bindPopup(() => buildRegionPopup('parks', park.id, park.name, park.state));
       marker.addTo(map);
@@ -767,11 +1232,37 @@ import {
   // Returns a DOM node with listeners already attached (used via the function
   // form of bindPopup so it reflects current state each time it opens).
   function buildRegionPopup(category, id, name, meta) {
-    const visited = state.visited[category].has(id);
-    const memo = hasMemory(category, id);
-
     const div = document.createElement('div');
     div.className = 'place-popup';
+
+    // ---- Guest mode: read-only popup, no toggling, no private memories ----
+    if (state.guest) {
+      let statusText;
+      if (state.compare) {
+        const cls = compareClass(category, id);
+        statusText = cls === 'both' ? '✓ You both have been here'
+                   : cls === 'mine' ? '✓ Only you have been here'
+                   : cls === 'theirs' ? `✓ Only ${state.guest.name} has been here`
+                   : 'Neither of you yet';
+      } else {
+        statusText = state.guest.visited[category].has(id)
+          ? `✓ ${state.guest.name} has been here`
+          : `${state.guest.name} hasn't been here`;
+      }
+      div.innerHTML = `
+        <span class="popup-title"></span>
+        ${meta ? '<span class="popup-meta"></span>' : ''}
+        <span class="popup-status"></span>
+      `;
+      div.querySelector('.popup-title').textContent = name;
+      if (meta) div.querySelector('.popup-meta').textContent = meta;
+      div.querySelector('.popup-status').textContent = statusText;
+      return div;
+    }
+
+    // ---- Normal (own map) popup ----
+    const visited = state.visited[category].has(id);
+    const memo = hasMemory(category, id);
     div.innerHTML = `
       <span class="popup-title"></span>
       ${meta ? '<span class="popup-meta"></span>' : ''}
@@ -800,6 +1291,7 @@ import {
   // ACTIONS
   // ============================================================
   function toggleVisited(category, id) {
+    if (state.guest) return; // never mutate while viewing someone else's map
     const set = state.visited[category];
     if (set.has(id)) set.delete(id); else set.add(id);
     saveData();
@@ -818,6 +1310,7 @@ import {
   };
 
   function openMemories(category, id, name) {
+    if (state.guest) return; // memories belong to the map owner, not viewable here
     activeMemo = { category, id, name };
     const meta = MEMO_META[category];
     const mem = (state.memories[category] && state.memories[category][id]) || {};
@@ -920,7 +1413,7 @@ import {
     } else {
       state.memories[category][id] = { notes, list, favorites };
     }
-    saveData(); // persists visited + memories together
+    savePrivate(); // memories live in the private doc
 
     document.getElementById('memoStatus').textContent = 'Saved ✓';
     refreshAll();
@@ -986,7 +1479,7 @@ import {
         id: p.id,
         name: p.name,
         meta: p.state,
-        visited: state.visited.parks.has(p.id)
+        visited: activeVisited('parks').has(p.id)
       })).sort((a, b) => a.name.localeCompare(b.name));
     }
     if (state.view === 'states' && state.data.states) {
@@ -994,7 +1487,7 @@ import {
         id: f.properties.name,
         name: f.properties.name,
         meta: '',
-        visited: state.visited.states.has(f.properties.name)
+        visited: activeVisited('states').has(f.properties.name)
       })).sort((a, b) => a.name.localeCompare(b.name));
     }
     if (state.view === 'countries' && state.data.countries) {
@@ -1004,7 +1497,7 @@ import {
           id: f.properties.name,
           name: f.properties.name,
           meta: '',
-          visited: state.visited.countries.has(f.properties.name)
+          visited: activeVisited('countries').has(f.properties.name)
         })).sort((a, b) => a.name.localeCompare(b.name));
     }
     return [];
@@ -1025,10 +1518,11 @@ import {
     document.getElementById('emptyHint').hidden = filtered.length > 0;
 
     const cat = state.view;
+    const guest = !!state.guest;
     const frag = document.createDocumentFragment();
     filtered.forEach(item => {
       const li = document.createElement('li');
-      li.className = 'place-item' + (item.visited ? ' is-visited' : '');
+      li.className = 'place-item' + (item.visited ? ' is-visited' : '') + (guest ? ' is-readonly' : '');
       const check = document.createElement('span');
       check.className = 'place-item__check';
       const name = document.createElement('span');
@@ -1042,18 +1536,19 @@ import {
         meta.textContent = item.meta;
         li.appendChild(meta);
       }
-      const memoBtn = document.createElement('button');
-      const hasMemo = hasMemory(cat, item.id);
-      memoBtn.className = 'place-item__memo' + (hasMemo ? ' has-memo' : '');
-      memoBtn.title = hasMemo ? 'Saved memories' : 'Add memories';
-      memoBtn.textContent = hasMemo ? '✦' : '✎';
-      memoBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        openMemories(cat, item.id, item.name);
-      });
-      li.appendChild(memoBtn);
-
-      li.addEventListener('click', () => toggleVisited(cat, item.id));
+      if (!guest) {
+        const memoBtn = document.createElement('button');
+        const hasMemo = hasMemory(cat, item.id);
+        memoBtn.className = 'place-item__memo' + (hasMemo ? ' has-memo' : '');
+        memoBtn.title = hasMemo ? 'Saved memories' : 'Add memories';
+        memoBtn.textContent = hasMemo ? '✦' : '✎';
+        memoBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          openMemories(cat, item.id, item.name);
+        });
+        li.appendChild(memoBtn);
+        li.addEventListener('click', () => toggleVisited(cat, item.id));
+      }
       li.addEventListener('dblclick', () => flyToItem(cat, item.id));
       frag.appendChild(li);
     });
@@ -1081,11 +1576,26 @@ import {
 
   function renderStats() {
     const items = getCurrentList();
+    const cat = state.view;
+    const labelEl = document.getElementById('statsLabel');
+    const numEl = document.getElementById('statsCount');
+    const totEl = document.getElementById('statsTotal');
+
+    if (state.guest && state.compare) {
+      // Show the overlap: places you've BOTH been
+      const both = items.filter(i =>
+        state.visited[cat].has(i.id) && state.guest.visited[cat].has(i.id)).length;
+      numEl.textContent = both;
+      totEl.textContent = items.length;
+      labelEl.textContent = 'in common';
+      return;
+    }
+
     const visited = items.filter(i => i.visited).length;
-    document.getElementById('statsCount').textContent = visited;
-    document.getElementById('statsTotal').textContent = items.length;
-    const labels = { parks: 'parks visited', states: 'states visited', countries: 'countries visited' };
-    document.getElementById('statsLabel').textContent = labels[state.view];
+    numEl.textContent = visited;
+    totEl.textContent = items.length;
+    const noun = { parks: 'parks', states: 'states', countries: 'countries' }[cat];
+    labelEl.textContent = state.guest ? `${noun} (their map)` : `${noun} visited`;
   }
 
   function renderCaption() {
@@ -1103,11 +1613,34 @@ import {
     else if (state.view === 'countries') renderCountriesMap();
   }
 
+  function renderCompareLegend() {
+    const chrome = document.querySelector('.map-pane__chrome');
+    let legend = document.getElementById('compareLegend');
+    if (!(state.guest && state.compare)) {
+      if (legend) legend.remove();
+      return;
+    }
+    if (!legend && chrome) {
+      legend = document.createElement('div');
+      legend.id = 'compareLegend';
+      legend.className = 'compare-legend';
+      legend.innerHTML = `
+        <span class="compare-legend__item"><span class="compare-legend__swatch" style="background:${STYLE.cmpBoth}"></span>Both</span>
+        <span class="compare-legend__item"><span class="compare-legend__swatch" style="background:${STYLE.cmpMine}"></span>Only you</span>
+        <span class="compare-legend__item"><span class="compare-legend__swatch" style="background:${STYLE.cmpTheirs}"></span>Only <span id="cmpTheirName"></span></span>
+      `;
+      chrome.appendChild(legend);
+      const nm = legend.querySelector('#cmpTheirName');
+      if (nm) nm.textContent = state.guest.name;
+    }
+  }
+
   function refreshAll() {
     renderMap();
     renderList();
     renderStats();
     renderCaption();
+    renderCompareLegend();
   }
 
   // ============================================================
@@ -1147,6 +1680,7 @@ import {
   });
 
   document.getElementById('resetBtn').addEventListener('click', () => {
+    if (state.guest) return; // can't reset someone else's map
     const labels = { parks: 'national parks', states: 'states', countries: 'countries' };
     if (confirm(`Reset all visited ${labels[state.view]}? This cannot be undone.`)) {
       state.visited[state.view].clear();
@@ -1167,6 +1701,17 @@ import {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && !document.getElementById('memoOverlay').hidden) {
       closeMemories();
+    }
+  });
+
+  // ---- Share modal ----
+  document.getElementById('shareClose').addEventListener('click', closeShareModal);
+  document.getElementById('shareOverlay').addEventListener('click', e => {
+    if (e.target.id === 'shareOverlay') closeShareModal();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && !document.getElementById('shareOverlay').hidden) {
+      closeShareModal();
     }
   });
 
@@ -1216,6 +1761,17 @@ import {
 
     document.getElementById('loader').classList.add('is-hidden');
     refreshAll();
+
+    // If the URL carries a share token, open that map as a guest view.
+    // (Done after data + first paint so the map frames the guest map cleanly.)
+    const token = new URLSearchParams(location.search).get('m');
+    if (token) {
+      const ok = await openGuest(token);
+      if (!ok) {
+        // bad/revoked link — clean the URL so a refresh shows your own map
+        history.replaceState(null, '', location.origin + location.pathname);
+      }
+    }
   }
 
   if (document.readyState === 'loading') {

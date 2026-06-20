@@ -1149,3 +1149,244 @@ input { font-family: inherit; }
 .tabs-row .stats {
   padding-bottom: 9px;         /* sits the count on the tabs' baseline */
 }
+/* ===========================================================
+   SHARING / SOCIAL (v2)
+   =========================================================== */
+
+/* ---- Share button in the account row ---- */
+.account__btn--share {
+  border-color: var(--visited);
+  color: var(--visited);
+}
+.account__btn--share:hover {
+  background: var(--visited);
+  color: #fff;
+  border-color: var(--visited);
+}
+
+/* ---- Share / Friends modal (reuses .memo-overlay / .memo-modal) ---- */
+.share-modal { max-width: 460px; }
+
+.share-copy {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+  margin: 0 0 14px;
+}
+.share-copy strong { color: var(--ink); }
+
+.share-linkrow {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.share-link {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: var(--bg);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+}
+
+.share-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.share-action {
+  padding: 9px 16px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: var(--bg-paper);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.share-action:hover { border-color: var(--ink-soft); background: #fff; }
+.share-action:disabled { opacity: 0.5; cursor: default; }
+
+.share-action--primary {
+  background: var(--visited);
+  color: #fff;
+  border-color: var(--visited);
+}
+.share-action--primary:hover { background: var(--visited-deep); color: #fff; }
+
+.share-action--danger { color: var(--visited); border-color: var(--visited-soft); }
+.share-action--danger:hover { background: var(--visited); color: #fff; border-color: var(--visited); }
+
+.share-fineprint {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-faint);
+  margin: 12px 0 0;
+}
+
+/* ---- Saved friends list ---- */
+.share-friends {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dotted var(--rule);
+}
+.friend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+.friend-open {
+  flex: 1;
+  text-align: left;
+  padding: 9px 12px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.friend-open:hover { border-color: var(--visited); background: #fff; }
+.friend-del {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--ink-faint);
+  background: none;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.friend-del:hover { color: var(--visited); border-color: var(--visited-soft); }
+
+/* ===========================================================
+   GUEST VIEW (viewing a friend's map)
+   =========================================================== */
+.guest-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 20px;
+  background: var(--visited);
+  color: #fff;
+  font-family: var(--font-body);
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 1200;
+}
+.guest-banner__label {
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.guest-banner__label strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 16px;
+}
+.guest-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.guest-btn {
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: rgba(255,255,255,0.16);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.guest-btn:hover { background: rgba(255,255,255,0.28); }
+.guest-btn.is-on { background: #fff; color: var(--visited); }
+.guest-btn--exit {
+  background: transparent;
+  border-color: rgba(255,255,255,0.7);
+}
+.guest-btn--exit:hover { background: rgba(0,0,0,0.15); }
+.guest-saved {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #fff;
+  opacity: 0.9;
+}
+
+/* While in guest mode, dim the affordances that don't apply */
+body.is-guest .reset-btn { visibility: hidden; }
+body.is-guest .place-item.is-readonly { cursor: default; }
+body.is-guest .place-item.is-readonly:hover { background: transparent; }
+
+/* Read-only popup status line */
+.popup-status {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--visited);
+}
+
+/* ===========================================================
+   COMPARE LEGEND (shown over the map in compare mode)
+   =========================================================== */
+.compare-legend {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 8px 14px;
+  background: var(--bg-paper);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+.compare-legend__item { display: inline-flex; align-items: center; gap: 7px; }
+.compare-legend__swatch {
+  width: 14px; height: 14px; border-radius: 3px;
+  border: 1px solid rgba(0,0,0,0.15);
+}
+
+/* ===========================================================
+   TOAST
+   =========================================================== */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 32px;
+  transform: translateX(-50%) translateY(12px);
+  padding: 11px 20px;
+  background: var(--ink);
+  color: var(--bg-paper);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 2000;
+}
+.toast.is-visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+@media (max-width: 760px) {
+  .guest-banner { padding: 9px 14px; }
+  .guest-banner__label strong { font-size: 15px; }
+}

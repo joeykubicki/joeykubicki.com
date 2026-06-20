@@ -148,6 +148,27 @@
     </div>
   </div>
 
+  <!-- Share / Friends modal -->
+  <div class="memo-overlay share-overlay" id="shareOverlay" hidden>
+    <div class="memo-modal share-modal" role="dialog" aria-modal="true" aria-labelledby="shareTitle">
+      <button class="memo-close" id="shareClose" title="Close" aria-label="Close">×</button>
+
+      <div class="memo-head">
+        <span class="memo-eyebrow">Share &amp; Friends</span>
+        <h2 class="memo-place" id="shareTitle">Your map</h2>
+      </div>
+
+      <div class="memo-body">
+        <div id="shareBody"><!-- sharing controls injected by app.js --></div>
+
+        <div class="share-friends">
+          <label class="memo-label">Saved Friends</label>
+          <div id="friendsList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="loader" id="loader" aria-hidden="true">
     <div class="loader__inner">
       <div class="loader__dot"></div>
