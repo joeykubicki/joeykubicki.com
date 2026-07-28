@@ -144,6 +144,10 @@ import {
     shareToken: null,
     savedFriends: [],          // [{ token, name }]
 
+    // Bulk-edit mode: clicking a place on the map toggles visited directly
+    // instead of opening its popup. Applies to all three map views.
+    bulkEdit: false,
+
     // Guest mode: when viewing someone else's shared map. While active,
     // `guest` holds THEIR visited sets and we render from those instead of
     // `state.visited`. `state.visited` is never modified in guest mode.
@@ -1108,7 +1112,11 @@ import {
           mouseout: e => currentLayer.resetStyle(e.target)
         });
         layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tip' });
-        layer.bindPopup(() => buildRegionPopup('states', name, name, ''));
+        if (!state.guest && state.bulkEdit) {
+          layer.on('click', () => toggleVisited('states', name));
+        } else {
+          layer.bindPopup(() => buildRegionPopup('states', name, name, ''));
+        }
       }
     }).addTo(map);
     if (!viewFitted.states) {
@@ -1135,7 +1143,11 @@ import {
           mouseout: e => currentLayer.resetStyle(e.target)
         });
         layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tip' });
-        layer.bindPopup(() => buildRegionPopup('countries', name, name, ''));
+        if (!state.guest && state.bulkEdit) {
+          layer.on('click', () => toggleVisited('countries', name));
+        } else {
+          layer.bindPopup(() => buildRegionPopup('countries', name, name, ''));
+        }
       }
     }).addTo(map);
 
@@ -1213,7 +1225,11 @@ import {
       }
       const marker = L.marker(latlng, { icon, riseOnHover: true });
       marker.bindTooltip(park.name, { direction: 'top', offset: [0, -20] });
-      marker.bindPopup(() => buildRegionPopup('parks', park.id, park.name, park.state));
+      if (!state.guest && state.bulkEdit) {
+        marker.on('click', () => toggleVisited('parks', park.id));
+      } else {
+        marker.bindPopup(() => buildRegionPopup('parks', park.id, park.name, park.state));
+      }
       marker.addTo(map);
       parkMarkers.push(marker);
     });
@@ -1295,6 +1311,19 @@ import {
     const set = state.visited[category];
     if (set.has(id)) set.delete(id); else set.add(id);
     saveData();
+    refreshAll();
+  }
+
+  function renderBulkEditButton() {
+    const btn = document.getElementById('bulkEditBtn');
+    if (!btn) return;
+    btn.classList.toggle('is-on', state.bulkEdit);
+  }
+
+  function toggleBulkEdit() {
+    if (state.guest) return;
+    state.bulkEdit = !state.bulkEdit;
+    renderBulkEditButton();
     refreshAll();
   }
 
@@ -1678,6 +1707,8 @@ import {
     state.search = e.target.value;
     renderList();
   });
+
+  document.getElementById('bulkEditBtn').addEventListener('click', toggleBulkEdit);
 
   document.getElementById('resetBtn').addEventListener('click', () => {
     if (state.guest) return; // can't reset someone else's map

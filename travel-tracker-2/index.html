@@ -73,9 +73,14 @@
     <section class="map-pane" aria-label="Map">
       <div class="map-pane__chrome">
         <span class="map-pane__caption" id="mapCaption">North America</span>
-        <button class="reset-btn" id="resetBtn" title="Reset all visited for this category">
-          Reset
-        </button>
+        <div class="map-pane__actions">
+          <button class="bulk-edit-btn" id="bulkEditBtn" type="button" title="Bulk Edit">
+            Bulk Edit
+          </button>
+          <button class="reset-btn" id="resetBtn" title="Reset all visited for this category">
+            Reset
+          </button>
+        </div>
       </div>
       <div id="map" class="map"></div>
       <div class="legend">
