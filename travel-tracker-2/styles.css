@@ -985,9 +985,45 @@ body.is-guest .bulk-edit-btn { visibility: hidden; }
   border-top: 1px solid var(--rule);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 16px;
   background: var(--bg);
+}
+
+.memo-foot__right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-left: auto;
+}
+
+/* Visited toggle — lives in the modal footer, echoes .popup-btn--visit */
+.memo-visit {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  font-family: var(--font-body);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 9px 20px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+}
+.memo-visit:hover {
+  border-color: var(--visited);
+  color: var(--visited-deep);
+}
+.memo-visit.is-visited {
+  background: var(--visited);
+  border-color: var(--visited);
+  color: var(--bg-paper);
+}
+.memo-visit.is-visited:hover {
+  background: var(--visited-deep);
+  border-color: var(--visited-deep);
+  color: var(--bg-paper);
 }
 
 .memo-status {
@@ -1014,6 +1050,8 @@ body.is-guest .bulk-edit-btn { visibility: hidden; }
 @media (max-width: 900px) {
   .memo-modal { width: 100%; max-width: none; min-width: 0; max-height: 92vh; }
   .memo-row__name { flex: 0 0 42%; }
+  .memo-foot { flex-wrap: wrap; gap: 12px; }
+  .memo-visit { padding: 9px 14px; }
 }
 
 /* ---------- Account / Sign-in (added with cloud sync) ---------- */

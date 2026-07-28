@@ -1114,6 +1114,8 @@ import {
         layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tip' });
         if (!state.guest && state.bulkEdit) {
           layer.on('click', () => toggleVisited('states', name));
+        } else if (!state.guest) {
+          layer.on('click', () => openMemories('states', name, name));
         } else {
           layer.bindPopup(() => buildRegionPopup('states', name, name, ''));
         }
@@ -1145,6 +1147,8 @@ import {
         layer.bindTooltip(name, { sticky: true, direction: 'top', className: 'region-tip' });
         if (!state.guest && state.bulkEdit) {
           layer.on('click', () => toggleVisited('countries', name));
+        } else if (!state.guest) {
+          layer.on('click', () => openMemories('countries', name, name));
         } else {
           layer.bindPopup(() => buildRegionPopup('countries', name, name, ''));
         }
@@ -1227,6 +1231,8 @@ import {
       marker.bindTooltip(park.name, { direction: 'top', offset: [0, -20] });
       if (!state.guest && state.bulkEdit) {
         marker.on('click', () => toggleVisited('parks', park.id));
+      } else if (!state.guest) {
+        marker.on('click', () => openMemories('parks', park.id, park.name));
       } else {
         marker.bindPopup(() => buildRegionPopup('parks', park.id, park.name, park.state));
       }
@@ -1247,6 +1253,9 @@ import {
   // One popup builder for parks, states, and countries.
   // Returns a DOM node with listeners already attached (used via the function
   // form of bindPopup so it reflects current state each time it opens).
+  // On your own map, clicking a place now opens the Saved Memories modal
+  // directly (which carries the visited toggle), so only the guest branch
+  // below is reached in practice; the owner branch stays as a fallback.
   function buildRegionPopup(category, id, name, meta) {
     const div = document.createElement('div');
     div.className = 'place-popup';
@@ -1344,8 +1353,12 @@ import {
     const meta = MEMO_META[category];
     const mem = (state.memories[category] && state.memories[category][id]) || {};
 
-    document.getElementById('memoEyebrow').textContent = meta.eyebrow;
+    // Parks carry their state in the eyebrow (the old popup showed it as meta)
+    const park = category === 'parks' ? PARKS.find(p => p.id === id) : null;
+    document.getElementById('memoEyebrow').textContent =
+      park && park.state ? `${meta.eyebrow} · ${park.state}` : meta.eyebrow;
     document.getElementById('memoPlace').textContent = name;
+    renderMemoVisit();
     document.getElementById('memoNotes').value = mem.notes || '';
 
     // Primary list: Favorite Hikes (parks) or Favorite Cities (states/countries)
@@ -1362,6 +1375,15 @@ import {
     overlay.hidden = false;
     requestAnimationFrame(() => overlay.classList.add('is-open'));
     document.getElementById('memoNotes').focus();
+  }
+
+  // The visited toggle that lives in the modal footer.
+  function renderMemoVisit() {
+    const btn = document.getElementById('memoVisit');
+    if (!btn || !activeMemo) return;
+    const visited = state.visited[activeMemo.category].has(activeMemo.id);
+    btn.classList.toggle('is-visited', visited);
+    btn.textContent = visited ? '✓ Visited — Remove' : 'Mark as Visited';
   }
 
   function closeMemories() {
@@ -1722,6 +1744,11 @@ import {
 
   // ---- Saved Memories modal ----
   document.getElementById('memoSave').addEventListener('click', saveMemories);
+  document.getElementById('memoVisit').addEventListener('click', () => {
+    if (!activeMemo || state.guest) return;
+    toggleVisited(activeMemo.category, activeMemo.id);
+    renderMemoVisit();
+  });
   document.getElementById('memoClose').addEventListener('click', closeMemories);
   document.getElementById('memoAdd').addEventListener('click', addMemoRow);
   document.getElementById('memoFavAdd').addEventListener('click', addFavRow);
