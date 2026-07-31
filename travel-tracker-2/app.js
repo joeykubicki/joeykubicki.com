@@ -136,6 +136,9 @@ import {
     filter: 'all',
     search: '',
     visited: { parks: new Set(), states: new Set(), countries: new Set() },
+    // Bucket list — places you WANT to go. Lives alongside visited in the
+    // SHAREABLE map doc (it's a list of places, not a private memory).
+    bucket:  { parks: new Set(), states: new Set(), countries: new Set() },
     memories: { parks: {}, states: {}, countries: {} },
     data: { states: null, countries: null },
 
@@ -197,6 +200,11 @@ import {
       parks:     [...state.visited.parks],
       states:    [...state.visited.states],
       countries: [...state.visited.countries],
+      bucket: {
+        parks:     [...state.bucket.parks],
+        states:    [...state.bucket.states],
+        countries: [...state.bucket.countries]
+      },
       shareEnabled: !!state.shareEnabled,
       displayName: currentUser ? (currentUser.displayName || '') : '',
       updatedAt: serverTimestamp()
@@ -220,6 +228,7 @@ import {
     ['parks', 'states', 'countries'].forEach(key => {
       state.visited[key] = new Set(Array.isArray(data[key]) ? data[key] : []);
     });
+    state.bucket = parseBucket(data);
     state.shareEnabled = !!data.shareEnabled;
     state.shareToken   = data.shareToken || null;
   }
@@ -243,6 +252,16 @@ import {
       parks:     new Set(Array.isArray(data.parks)     ? data.parks     : []),
       states:    new Set(Array.isArray(data.states)    ? data.states    : []),
       countries: new Set(Array.isArray(data.countries) ? data.countries : [])
+    };
+  }
+
+  // Same, for the bucket list (absent on documents written before this feature).
+  function parseBucket(data) {
+    const b = (data && data.bucket && typeof data.bucket === 'object') ? data.bucket : {};
+    return {
+      parks:     new Set(Array.isArray(b.parks)     ? b.parks     : []),
+      states:    new Set(Array.isArray(b.states)    ? b.states    : []),
+      countries: new Set(Array.isArray(b.countries) ? b.countries : [])
     };
   }
 
@@ -395,6 +414,7 @@ import {
     // Back to this browser's local data (NOT the signed-out user's data —
     // their stuff lives only in their cloud profile)
     state.visited = { parks: new Set(), states: new Set(), countries: new Set() };
+    state.bucket  = { parks: new Set(), states: new Set(), countries: new Set() };
     state.memories = { parks: {}, states: {}, countries: {} };
     state.shareEnabled = false;
     state.shareToken = null;
@@ -559,7 +579,8 @@ import {
       uid,
       token,
       name: data.displayName || 'Explorer',
-      visited: parseVisited(data)
+      visited: parseVisited(data),
+      bucket: parseBucket(data)
     };
   }
 
@@ -606,6 +627,17 @@ import {
   function activeVisited(category) {
     if (state.guest && !state.compare) return state.guest.visited[category];
     return state.visited[category];
+  }
+
+  // Same idea for the bucket list. In compare mode we're showing overlap
+  // colors, so no bucket highlighting there.
+  const EMPTY_SET = new Set();
+  function activeBucket(category) {
+    if (state.guest) {
+      if (state.compare) return EMPTY_SET;
+      return (state.guest.bucket && state.guest.bucket[category]) || EMPTY_SET;
+    }
+    return state.bucket[category];
   }
 
   // In compare mode, classify a place: 'both' | 'mine' | 'theirs' | null
@@ -807,6 +839,7 @@ import {
       ['parks', 'states', 'countries'].forEach(key => {
         if (Array.isArray(data[key])) state.visited[key] = new Set(data[key]);
       });
+      state.bucket = parseBucket(data);
       if (data.memories && typeof data.memories === 'object') {
         ['parks', 'states', 'countries'].forEach(key => {
           if (data.memories[key] && typeof data.memories[key] === 'object') {
@@ -822,6 +855,11 @@ import {
       parks: [...state.visited.parks],
       states: [...state.visited.states],
       countries: [...state.visited.countries],
+      bucket: {
+        parks:     [...state.bucket.parks],
+        states:    [...state.bucket.states],
+        countries: [...state.bucket.countries]
+      },
       memories: state.memories
     };
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); }
@@ -993,6 +1031,10 @@ import {
     landHover:    '#c3c9d1',   // was #c9b78c
     visited:      '#b34a26',
     visitedHover: '#8e3818',
+    // bucket list — gold (keep in sync with --bucket / --bucket-deep in styles.css)
+    bucket:       '#d9a520',
+    bucketHover:  '#b8860b',
+    bucketDeep:   '#8a6508',
     border:       '#1f2a20',
     parkBase:     '#e6e9ec',   // was #e8dcbe
     parkBorder:   '#aeb5bd',   // was #b3a387
@@ -1041,7 +1083,16 @@ import {
       if (cls === 'theirs') return STYLE.cmpTheirs;
       return STYLE.land;
     }
-    return activeVisited(category).has(id) ? STYLE.visited : STYLE.land;
+    if (activeVisited(category).has(id)) return STYLE.visited;
+    if (activeBucket(category).has(id))  return STYLE.bucket;
+    return STYLE.land;
+  }
+
+  // Hover fill, mirroring regionFill's precedence (visited > bucket > land).
+  function regionHoverFill(category, id) {
+    if (activeVisited(category).has(id)) return STYLE.visitedHover;
+    if (activeBucket(category).has(id))  return STYLE.bucketHover;
+    return STYLE.landHover;
   }
 
   function regionStyleFor(category, id) {
@@ -1076,11 +1127,12 @@ import {
     });
   }
 
-  // Evergreen tree icon for national parks — white by default, green when visited
-  function makeTree(visited) {
-    const foliage = visited ? '#357a38' : '#fbfaf5';
-    const stroke  = visited ? '#1d5226' : '#3f5a3f';
-    const trunk   = visited ? '#43301a' : '#8a6a45';
+  // Evergreen tree icon for national parks — white by default, green when
+  // visited, gold when it's on the bucket list (visited wins).
+  function makeTree(visited, bucket) {
+    const foliage = visited ? '#357a38' : bucket ? STYLE.bucket      : '#fbfaf5';
+    const stroke  = visited ? '#1d5226' : bucket ? STYLE.bucketDeep  : '#3f5a3f';
+    const trunk   = visited ? '#43301a' : bucket ? '#6b4a12'         : '#8a6a45';
     const w = 20, h = 27, anchor = 25;
     return L.divIcon({
       html: `<svg viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
@@ -1089,7 +1141,7 @@ import {
   <polygon points="12,8 21,20 3,20"      fill="${foliage}" stroke="${stroke}" stroke-width="1.3" stroke-linejoin="round"/>
   <polygon points="12,14 22.5,26 1.5,26" fill="${foliage}" stroke="${stroke}" stroke-width="1.3" stroke-linejoin="round"/>
 </svg>`,
-      className: `map-tree${visited ? ' is-visited' : ''}`,
+      className: `map-tree${visited ? ' is-visited' : bucket ? ' is-bucket' : ''}`,
       iconSize:    [w, h],
       iconAnchor:  [w / 2, anchor],
       popupAnchor: [0, -anchor + 3]
@@ -1106,8 +1158,7 @@ import {
         layer.on({
           mouseover: e => {
             if (state.guest && state.compare) return; // keep compare colors stable
-            const v = activeVisited('states').has(name);
-            e.target.setStyle({ fillColor: v ? STYLE.visitedHover : STYLE.landHover });
+            e.target.setStyle({ fillColor: regionHoverFill('states', name) });
           },
           mouseout: e => currentLayer.resetStyle(e.target)
         });
@@ -1139,8 +1190,7 @@ import {
         layer.on({
           mouseover: e => {
             if (state.guest && state.compare) return;
-            const v = activeVisited('countries').has(name);
-            e.target.setStyle({ fillColor: v ? STYLE.visitedHover : STYLE.landHover });
+            e.target.setStyle({ fillColor: regionHoverFill('countries', name) });
           },
           mouseout: e => currentLayer.resetStyle(e.target)
         });
@@ -1172,6 +1222,9 @@ import {
         }
       } else if (pinSet.has(name)) {
         show = true;
+      } else if (activeBucket('countries').has(name)) {
+        show = true;
+        pinColor = STYLE.bucket;
       }
       if (!show) return;
       const centroid = regionCentroid(f.geometry);
@@ -1222,10 +1275,13 @@ import {
           const c = cls === 'both' ? STYLE.cmpBoth : cls === 'mine' ? STYLE.cmpMine : STYLE.cmpTheirs;
           icon = makePin({ size: 'sm', visited: true, color: c });
         } else {
-          icon = makeTree(false);
+          icon = makeTree(false, false);
         }
       } else {
-        icon = makeTree(activeVisited('parks').has(park.id));
+        icon = makeTree(
+          activeVisited('parks').has(park.id),
+          activeBucket('parks').has(park.id)
+        );
       }
       const marker = L.marker(latlng, { icon, riseOnHover: true });
       marker.bindTooltip(park.name, { direction: 'top', offset: [0, -20] });
@@ -1272,7 +1328,9 @@ import {
       } else {
         statusText = state.guest.visited[category].has(id)
           ? `✓ ${state.guest.name} has been here`
-          : `${state.guest.name} hasn't been here`;
+          : activeBucket(category).has(id)
+            ? `★ On ${state.guest.name}'s bucket list`
+            : `${state.guest.name} hasn't been here`;
       }
       div.innerHTML = `
         <span class="popup-title"></span>
@@ -1287,12 +1345,16 @@ import {
 
     // ---- Normal (own map) popup ----
     const visited = state.visited[category].has(id);
+    const bucket = state.bucket[category].has(id);
     const memo = hasMemory(category, id);
     div.innerHTML = `
       <span class="popup-title"></span>
       ${meta ? '<span class="popup-meta"></span>' : ''}
       <button class="popup-btn popup-btn--memories ${memo ? 'has-memo' : ''}" data-act="memories">
         ${memo ? '✦ Saved Memories' : 'Saved Memories'}
+      </button>
+      <button class="popup-btn popup-btn--bucket ${bucket ? 'is-bucket' : ''}" data-act="bucket">
+        ${bucket ? '★ On Bucket List — Remove' : 'Add to Bucket List'}
       </button>
       <button class="popup-btn popup-btn--visit ${visited ? 'is-visited' : ''}" data-act="visit">
         ${visited ? '✓ Visited — Remove' : 'Mark as Visited'}
@@ -1303,6 +1365,10 @@ import {
 
     div.querySelector('[data-act="visit"]').addEventListener('click', () => {
       toggleVisited(category, id);
+      map.closePopup();
+    });
+    div.querySelector('[data-act="bucket"]').addEventListener('click', () => {
+      toggleBucket(category, id);
       map.closePopup();
     });
     div.querySelector('[data-act="memories"]').addEventListener('click', () => {
@@ -1318,8 +1384,29 @@ import {
   function toggleVisited(category, id) {
     if (state.guest) return; // never mutate while viewing someone else's map
     const set = state.visited[category];
-    if (set.has(id)) set.delete(id); else set.add(id);
+    if (set.has(id)) {
+      set.delete(id);
+    } else {
+      set.add(id);
+      // Been there now — it no longer belongs on the "want to go" list.
+      state.bucket[category].delete(id);
+    }
     saveData();
+    refreshAll();
+  }
+
+  // Bucket list = places you want to go. Marking one visited clears it (above),
+  // and adding a visited place to the bucket list clears the visited mark.
+  function toggleBucket(category, id) {
+    if (state.guest) return; // never mutate while viewing someone else's map
+    const set = state.bucket[category];
+    if (set.has(id)) {
+      set.delete(id);
+    } else {
+      set.add(id);
+      state.visited[category].delete(id);
+    }
+    saveMap();
     refreshAll();
   }
 
@@ -1359,6 +1446,7 @@ import {
       park && park.state ? `${meta.eyebrow} · ${park.state}` : meta.eyebrow;
     document.getElementById('memoPlace').textContent = name;
     renderMemoVisit();
+    renderMemoBucket();
     document.getElementById('memoNotes').value = mem.notes || '';
 
     // Primary list: Favorite Hikes (parks) or Favorite Cities (states/countries)
@@ -1384,6 +1472,15 @@ import {
     const visited = state.visited[activeMemo.category].has(activeMemo.id);
     btn.classList.toggle('is-visited', visited);
     btn.textContent = visited ? '✓ Visited — Remove' : 'Mark as Visited';
+  }
+
+  // The bucket-list toggle, between the visited button and Save.
+  function renderMemoBucket() {
+    const btn = document.getElementById('memoBucket');
+    if (!btn || !activeMemo) return;
+    const bucket = state.bucket[activeMemo.category].has(activeMemo.id);
+    btn.classList.toggle('is-bucket', bucket);
+    btn.textContent = bucket ? '★ On Bucket List' : 'Add to Bucket List';
   }
 
   function closeMemories() {
@@ -1530,7 +1627,8 @@ import {
         id: p.id,
         name: p.name,
         meta: p.state,
-        visited: activeVisited('parks').has(p.id)
+        visited: activeVisited('parks').has(p.id),
+        bucket: activeBucket('parks').has(p.id)
       })).sort((a, b) => a.name.localeCompare(b.name));
     }
     if (state.view === 'states' && state.data.states) {
@@ -1538,7 +1636,8 @@ import {
         id: f.properties.name,
         name: f.properties.name,
         meta: '',
-        visited: activeVisited('states').has(f.properties.name)
+        visited: activeVisited('states').has(f.properties.name),
+        bucket: activeBucket('states').has(f.properties.name)
       })).sort((a, b) => a.name.localeCompare(b.name));
     }
     if (state.view === 'countries' && state.data.countries) {
@@ -1548,7 +1647,8 @@ import {
           id: f.properties.name,
           name: f.properties.name,
           meta: '',
-          visited: activeVisited('countries').has(f.properties.name)
+          visited: activeVisited('countries').has(f.properties.name),
+          bucket: activeBucket('countries').has(f.properties.name)
         })).sort((a, b) => a.name.localeCompare(b.name));
     }
     return [];
@@ -1559,7 +1659,7 @@ import {
     const q = state.search.toLowerCase().trim();
     const filtered = items.filter(item => {
       if (state.filter === 'visited' && !item.visited) return false;
-      if (state.filter === 'todo' && item.visited) return false;
+      if (state.filter === 'bucket' && !item.bucket) return false;
       if (q && !item.name.toLowerCase().includes(q)) return false;
       return true;
     });
@@ -1573,7 +1673,10 @@ import {
     const frag = document.createDocumentFragment();
     filtered.forEach(item => {
       const li = document.createElement('li');
-      li.className = 'place-item' + (item.visited ? ' is-visited' : '') + (guest ? ' is-readonly' : '');
+      li.className = 'place-item'
+        + (item.visited ? ' is-visited' : '')
+        + (!item.visited && item.bucket ? ' is-bucket' : '')
+        + (guest ? ' is-readonly' : '');
       const check = document.createElement('span');
       check.className = 'place-item__check';
       const name = document.createElement('span');
@@ -1588,6 +1691,17 @@ import {
         li.appendChild(meta);
       }
       if (!guest) {
+        // Quick bucket-list toggle — also the way to take something back off.
+        const bucketBtn = document.createElement('button');
+        bucketBtn.className = 'place-item__bucket' + (item.bucket ? ' is-bucket' : '');
+        bucketBtn.title = item.bucket ? 'Remove from bucket list' : 'Add to bucket list';
+        bucketBtn.textContent = item.bucket ? '★' : '☆';
+        bucketBtn.addEventListener('click', e => {
+          e.stopPropagation();
+          toggleBucket(cat, item.id);
+        });
+        li.appendChild(bucketBtn);
+
         const memoBtn = document.createElement('button');
         const hasMemo = hasMemory(cat, item.id);
         memoBtn.className = 'place-item__memo' + (hasMemo ? ' has-memo' : '');
@@ -1747,6 +1861,13 @@ import {
   document.getElementById('memoVisit').addEventListener('click', () => {
     if (!activeMemo || state.guest) return;
     toggleVisited(activeMemo.category, activeMemo.id);
+    renderMemoVisit();
+    renderMemoBucket(); // visiting a place clears it from the bucket list
+  });
+  document.getElementById('memoBucket').addEventListener('click', () => {
+    if (!activeMemo || state.guest) return;
+    toggleBucket(activeMemo.category, activeMemo.id);
+    renderMemoBucket();
     renderMemoVisit();
   });
   document.getElementById('memoClose').addEventListener('click', closeMemories);

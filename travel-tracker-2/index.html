@@ -86,6 +86,7 @@
       <div class="legend">
         <span class="legend__item"><span class="legend__swatch legend__swatch--unvisited"></span>Not visited</span>
         <span class="legend__item"><span class="legend__swatch legend__swatch--visited"></span>Visited</span>
+        <span class="legend__item"><span class="legend__swatch legend__swatch--bucket"></span>Bucket list</span>
       </div>
     </section>
 
@@ -106,7 +107,7 @@
         <div class="list-pane__filter">
           <button class="filter is-active" data-filter="all">All</button>
           <button class="filter" data-filter="visited">Visited</button>
-          <button class="filter" data-filter="todo">To go</button>
+          <button class="filter" data-filter="bucket">Bucket List</button>
         </div>
       </div>
 
@@ -148,6 +149,7 @@
 
       <div class="memo-foot">
         <button class="memo-visit" id="memoVisit" type="button">Mark as Visited</button>
+        <button class="memo-bucket" id="memoBucket" type="button">Add to Bucket List</button>
         <div class="memo-foot__right">
           <span class="memo-status" id="memoStatus" aria-live="polite"></span>
           <button class="memo-save" id="memoSave" type="button">Save</button>

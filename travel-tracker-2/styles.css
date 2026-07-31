@@ -17,6 +17,11 @@
   --visited-deep: #8e3818;
   --visited-soft: #f0c3a4;
 
+  /* bucket list — gold (mirrored in the JS STYLE object for Leaflet) */
+  --bucket:       #d9a520;
+  --bucket-deep:  #8a6508;
+  --bucket-soft:  #f3e0a6;
+
   --land:         #d7dbe0; 
   --land-hover:   #c9b78c;
   --water:        #b7cadb;
@@ -360,6 +365,7 @@ body.is-guest .bulk-edit-btn { visibility: hidden; }
 
 .legend__swatch--unvisited { background: var(--land); }
 .legend__swatch--visited   { background: var(--visited); border-color: var(--visited-deep); }
+.legend__swatch--bucket    { background: var(--bucket);  border-color: var(--bucket-deep); }
 
 /* ---------- List Pane ---------- */
 
@@ -545,6 +551,51 @@ body.is-guest .bulk-edit-btn { visibility: hidden; }
   color: var(--visited);
 }
 
+/* Bucket-list star — same affordance as the memo pencil, gold when set */
+.place-item__bucket {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--ink-faint);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.15s;
+  opacity: 0;
+}
+
+.place-item:hover .place-item__bucket { opacity: 1; }
+
+.place-item__bucket:hover {
+  border-color: var(--bucket);
+  color: var(--bucket-deep);
+  background: var(--bg-paper);
+}
+
+.place-item__bucket.is-bucket {
+  opacity: 1;
+  color: var(--bucket-deep);
+}
+
+.place-item.is-bucket .place-item__check {
+  background: var(--bucket);
+  border-color: var(--bucket-deep);
+}
+
+.place-item.is-bucket .place-item__check::after {
+  background: var(--bg-paper);
+  clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+
+.place-item.is-bucket .place-item__name {
+  font-family: var(--font-display);
+  font-style: italic;
+  color: var(--bucket-deep);
+}
+
 .list-pane__foot {
   padding: 12px 18px;
   border-top: 1px solid var(--rule);
@@ -696,6 +747,28 @@ body.is-guest .bulk-edit-btn { visibility: hidden; }
   color: var(--visited-deep);
 }
 
+/* Bucket list = secondary (outlined) button, gold once it's on the list */
+.popup-btn--bucket {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+}
+.popup-btn--bucket:hover {
+  background: var(--bg);
+  border-color: var(--bucket);
+  color: var(--bucket-deep);
+}
+.popup-btn--bucket.is-bucket {
+  background: var(--bucket);
+  border-color: var(--bucket);
+  color: var(--ink);
+}
+.popup-btn--bucket.is-bucket:hover {
+  background: var(--bucket-deep);
+  border-color: var(--bucket-deep);
+  color: var(--bg-paper);
+}
+
 /* ---------- Map pins (Google-Maps style divIcon) ---------- */
 
 .map-pin {
@@ -743,6 +816,10 @@ body.is-guest .bulk-edit-btn { visibility: hidden; }
 
 .map-tree.is-visited {
   filter: drop-shadow(0 2px 3px rgba(29, 82, 38, 0.5));
+}
+
+.map-tree.is-bucket {
+  filter: drop-shadow(0 2px 3px rgba(138, 101, 8, 0.5));
 }
 
 .map-tree svg { display: block; }
@@ -1026,6 +1103,36 @@ body.is-guest .bulk-edit-btn { visibility: hidden; }
   color: var(--bg-paper);
 }
 
+/* Bucket-list toggle — sits between the visited toggle and Save */
+.memo-bucket {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--rule-strong);
+  font-family: var(--font-body);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 9px 20px;
+  cursor: pointer;
+  border-radius: var(--radius);
+  transition: background 0.18s, color 0.18s, border-color 0.18s;
+  margin: 0 auto; /* sits between the visited toggle and the Save group */
+}
+.memo-bucket:hover {
+  border-color: var(--bucket);
+  color: var(--bucket-deep);
+}
+.memo-bucket.is-bucket {
+  background: var(--bucket);
+  border-color: var(--bucket);
+  color: var(--ink);
+}
+.memo-bucket.is-bucket:hover {
+  background: var(--bucket-deep);
+  border-color: var(--bucket-deep);
+  color: var(--bg-paper);
+}
+
 .memo-status {
   font-size: 12px;
   font-style: italic;
@@ -1052,6 +1159,7 @@ body.is-guest .bulk-edit-btn { visibility: hidden; }
   .memo-row__name { flex: 0 0 42%; }
   .memo-foot { flex-wrap: wrap; gap: 12px; }
   .memo-visit { padding: 9px 14px; }
+  .memo-bucket { padding: 9px 14px; margin: 0; }
 }
 
 /* ---------- Account / Sign-in (added with cloud sync) ---------- */
