@@ -76,6 +76,15 @@
 
   </aside>
 
+  <!-- ── PROJECT DIRECTORY (fixed, outside .section so its tab fade-in transform can't hijack position:fixed) ── -->
+  <nav class="project-directory" id="project-directory" aria-label="Project directory">
+    <div class="project-directory-label">Directory</div>
+    <a href="#tile-travel-tracker" class="project-directory-link active">Travel Tracker</a>
+    <a href="#tile-math" class="project-directory-link">Math Flashcards</a>
+    <a href="#tile-food" class="project-directory-link">Food Recommendations</a>
+    <a href="#tile-website" class="project-directory-link">Website</a>
+  </nav>
+
   <!-- ── MAIN ── -->
   <main class="main">
 
@@ -537,7 +546,7 @@
 
   <div class="newspaper-grid">
     <!-- TILE 0 — Travel Tracker (live) -->
-<div class="news-tile">
+<div class="news-tile" id="tile-travel-tracker">
   <div class="tile-photo">
     <img src="https://joeykubicki.com/photos/travel-tracker-1.png" alt="Travel Tracker" />
   </div>
@@ -547,22 +556,24 @@
     <p class="tile-copy">A quick and easy application to track all of the National Parks, States, and Countries that you have visited
       with the ability to save memories and favorite parts about each area. Sign in using your Google Authentication to save your own profile!</p>
     <div class="tile-cta-row">
-      <div class="tile-cta-hint">
-        Give it a try!
-        <svg class="tile-cta-arrow" width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-          <path d="M4 4C4 4 26 2 28 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-          <path d="M20 18L28 20L27 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
+      <div class="tile-cta-wrap">
+        <div class="tile-cta-hint">
+          Give it a try!
+          <svg class="tile-cta-arrow" width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+            <path d="M4 4C4 4 26 2 28 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M20 18L28 20L27 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <a href="/travel-tracker-2/" target="_blank" rel="noopener" class="tile-cta tile-cta-lg">
+          Open Travel Atlas
+        </a>
       </div>
-      <a href="/travel-tracker-2/" target="_blank" rel="noopener" class="tile-cta tile-cta-lg">
-        Open Travel Atlas
-      </a>
     </div>
   </div>
 </div>
 
     <!-- TILE 2 — Math Flashcards (live, pair carousel) -->
-    <div class="news-tile">
+    <div class="news-tile" id="tile-math">
       <div class="tile-photo tile-carousel">
         <div class="carousel-track" id="track-math">
       <div class="carousel-slide-triple">
@@ -603,22 +614,24 @@
           other challenge modes (percentages, square roots, order of operations) and allow users to save test results and high scores.
         </p>
         <div class="tile-cta-row">
-          <div class="tile-cta-hint">
-            Give it a try!
-            <svg class="tile-cta-arrow" width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
-              <path d="M4 4C4 4 26 2 28 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              <path d="M20 18L28 20L27 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
+          <div class="tile-cta-wrap">
+            <div class="tile-cta-hint">
+              Give it a try!
+              <svg class="tile-cta-arrow" width="34" height="34" viewBox="0 0 34 34" fill="none" aria-hidden="true">
+                <path d="M4 4C4 4 26 2 28 20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M20 18L28 20L27 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <a href="/math-counts/" target="_blank" rel="noopener" class="tile-cta tile-cta-lg">
+              Open Web App
+            </a>
           </div>
-          <a href="/math-counts/" target="_blank" rel="noopener" class="tile-cta tile-cta-lg">
-            Open Web App
-          </a>
         </div>
       </div>
     </div>
 
     <!-- TILE 1 — Food Recs (single photo carousel) -->
-    <div class="news-tile">
+    <div class="news-tile" id="tile-food">
       <div class="tile-photo tile-carousel">
         <div class="carousel-track" id="track-food">
           <div class="carousel-slide">
@@ -654,7 +667,7 @@
     </div>
 
     <!-- TILE 3 — Website (single photo) -->
-    <div class="news-tile">
+    <div class="news-tile" id="tile-website">
       <div class="tile-photo">
         <img src="https://joeykubicki.com/photos/website-1.jpg" alt="Personal Website" />
       </div>

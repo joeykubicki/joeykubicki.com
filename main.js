@@ -1,10 +1,15 @@
 // ── NAV ──
+const projectDirectory = document.getElementById('project-directory');
+
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.target).classList.add('active');
+    if (projectDirectory) {
+      projectDirectory.classList.toggle('visible', btn.dataset.target === 'projects');
+    }
     // Close drawer on mobile after nav
     closeMobileMenu();
   });
@@ -66,6 +71,40 @@ const pairState = {};
 
 function slidePair(id, dir) { slide(id, dir); }
 function goToPair(id, i)    { goTo(id, i); }
+
+// ── PROJECT DIRECTORY (scroll-spy) ──
+if (projectDirectory) {
+  const directoryLinks = projectDirectory.querySelectorAll('.project-directory-link');
+
+  const setActiveLink = (link) => {
+    directoryLinks.forEach(l => {
+      l.classList.remove('active');
+      l.removeAttribute('aria-current');
+    });
+    link.classList.add('active');
+    link.setAttribute('aria-current', 'true');
+  };
+
+  directoryLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.getElementById(link.getAttribute('href').slice(1));
+      if (!target) return;
+      setActiveLink(link);
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  });
+
+  const tileObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const link = projectDirectory.querySelector(`.project-directory-link[href="#${entry.target.id}"]`);
+      if (link) setActiveLink(link);
+    });
+  }, { rootMargin: '-40% 0px -50% 0px', threshold: 0 });
+
+  document.querySelectorAll('#projects .news-tile[id]').forEach(tile => tileObserver.observe(tile));
+}
 
 // Initialise carousels — add a new line here for each trip you add
 initCarousel('nz', 5);

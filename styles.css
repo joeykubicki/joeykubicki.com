@@ -20,6 +20,7 @@ html, body {
   font-family: 'Lato', sans-serif;
   background: var(--page-bg);
   color: var(--ink);
+  scroll-behavior: smooth;
 }
 
 .layout {
@@ -383,8 +384,8 @@ nav {
   min-width: 100%;
   width: 100%;
   height: 100%;
-  gap: 6px;
-  padding: 6px;
+  gap: 3%;
+  padding: 3%;
   box-sizing: border-box;
   overflow: hidden;
 }
@@ -492,6 +493,70 @@ nav {
 
 #projects .news-tile {
   width: 60%;
+}
+
+/* ── PROJECT DIRECTORY (left margin, tracks scroll position) ── */
+.project-directory {
+  display: none;
+  position: fixed;
+  top: 50%;
+  left: calc(var(--sidebar-width) + 12px);
+  transform: translateY(-50%);
+  width: 176px;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 10;
+}
+
+.project-directory.visible {
+  display: flex;
+}
+
+.project-directory-label {
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--blue-mid);
+  margin-bottom: 10px;
+  padding-left: 12px;
+}
+
+.project-directory-link {
+  font-family: 'Lato', sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.3;
+  color: var(--ink-light);
+  text-decoration: none;
+  padding: 7px 12px;
+  border-left: 2px solid transparent;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.project-directory-link:hover {
+  color: var(--ink);
+  background: rgba(0,0,0,0.03);
+}
+
+.project-directory-link.active {
+  color: var(--blue-mid);
+  border-left-color: var(--blue-mid);
+  font-weight: 700;
+  background: rgba(31,78,122,0.06);
+}
+
+@media (max-width: 1240px) {
+  .project-directory.visible { display: none; }
+}
+
+#projects .tile-photo:not(.tile-carousel) {
+  padding: 3%;
+  box-sizing: border-box;
+}
+
+#projects .carousel-slide {
+  padding: 3%;
+  box-sizing: border-box;
+  background: var(--tile-bg);
 }
 
 /* ════════════════════════════════
@@ -805,7 +870,6 @@ nav {
 
 /* Larger CTA variant, centered under a pointing hint */
 .tile-cta-row {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -813,9 +877,16 @@ nav {
   padding-top: 30px;
 }
 
+/* Sizes to the button's own box, so the hint below anchors to the
+   button regardless of tile width */
+.tile-cta-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
 .tile-cta-hint {
   position: absolute;
-  top: 0;
+  top: -30px;
   left: 4%;
   display: flex;
   align-items: center;
