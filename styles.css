@@ -485,8 +485,13 @@ nav {
 ════════════════════════════════ */
 
 #projects .newspaper-grid {
-  columns: 2;
-  column-gap: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#projects .news-tile {
+  width: 60%;
 }
 
 /* ════════════════════════════════
@@ -723,11 +728,15 @@ nav {
     font-size: 1.9rem;
   }
 
-  /* ── About Me & Projects: 1-column tile grid ── */
-  #about .newspaper-grid,
-  #projects .newspaper-grid {
+  /* ── About Me: 1-column tile grid ── */
+  #about .newspaper-grid {
     columns: 1;
     column-gap: 0;
+  }
+
+  /* ── Projects: full-width tiles ── */
+  #projects .news-tile {
+    width: 100%;
   }
 
   /* ── Travel tiles: stack text above carousel ── */

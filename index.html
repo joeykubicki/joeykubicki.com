@@ -34,12 +34,6 @@
         </svg>
         About Me
       </button>
-      <button class="nav-btn" data-target="travel">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>
-        </svg>
-        Travel
-      </button>
       <button class="nav-btn" data-target="projects">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
@@ -55,6 +49,12 @@
           <line x1="8" y1="17" x2="16" y2="17"/>
         </svg>
         Resume Details
+      </button>
+      <button class="nav-btn" data-target="travel">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>
+        </svg>
+        Travel
       </button>
     </nav>
 
@@ -536,7 +536,7 @@
   </div>
 
   <div class="newspaper-grid">
-    <!-- TILE 0 — Travel Tracker -->
+    <!-- TILE 0 — Travel Tracker (live) -->
 <div class="news-tile">
   <div class="tile-photo">
     <img src="https://joeykubicki.com/photos/travel-tracker-1.png" alt="Travel Tracker" />
@@ -544,7 +544,7 @@
   <div class="tile-body">
     <div class="tile-kicker">Web App / Firebase / Leaflet</div>
     <div class="tile-headline">Travel Tracker</div>
-    <p class="tile-copy">A quick and easy application to track all of the National Parks, States, and Countries that you have visited 
+    <p class="tile-copy">A quick and easy application to track all of the National Parks, States, and Countries that you have visited
       with the ability to save memories and favorite parts about each area. Sign in using your Google Authentication to save your own profile!</p>
     <a href="/travel-tracker-2/" target="_blank" rel="noopener" class="tile-cta">
       Give it a try!
@@ -552,55 +552,7 @@
   </div>
 </div>
 
-    <!-- TILE 1 — Food Recs (single photo carousel) -->
-    <div class="news-tile">
-      <div class="tile-photo tile-carousel">
-        <div class="carousel-track" id="track-food">
-          <div class="carousel-slide">
-            <img src="https://joeykubicki.com/photos/food-recs-1.png" alt="" />
-          </div>
-          <div class="carousel-slide">
-            <img src="https://joeykubicki.com/photos/food-recs-2.png" alt="" />
-          </div>
-          <div class="carousel-slide">
-            <img src="https://joeykubicki.com/photos/food-recs-3.png" alt="" />
-          </div>
-          <div class="carousel-slide">
-            <img src="https://joeykubicki.com/photos/food-recs-4.png" alt="" />
-          </div>
-        </div><!-- closes carousel-track -->
-        <button class="carousel-btn carousel-prev" onclick="slide('food',-1)">&#8249;</button>
-        <button class="carousel-btn carousel-next" onclick="slide('food', 1)">&#8250;</button>
-        <div class="carousel-dots" id="dots-food">
-          <button class="carousel-dot active" onclick="goTo('food',0)"></button>
-          <button class="carousel-dot" onclick="goTo('food',1)"></button>
-          <button class="carousel-dot" onclick="goTo('food',2)"></button>
-          <button class="carousel-dot" onclick="goTo('food',3)"></button>
-        </div>
-      </div><!-- closes tile-photo tile-carousel -->
-      <div class="tile-body">
-        <div class="tile-kicker">Web App / JavaScript / APIs</div>
-        <div class="tile-headline">Food Recommendations</div>
-        <p class="tile-copy">A personal project to help me find restaurant recommendations in new cities! I've been wanting to get more experience using Claude code and also practice using APIs again - 
-          this web-app primarily uses the Google Maps and Places API to gather and display recommendations using an algorithm to pull top-rated restaurants in the city of your choice. I also built in
-          an "Ask AI" feature using the OpenAI API to provide another way of looking up more niche recommendations.
-        </p>
-      </div>
-    </div>
-
-    <!-- TILE 3 — Website (single photo) -->
-    <div class="news-tile">
-      <div class="tile-photo">
-        <img src="https://joeykubicki.com/photos/website-1.jpg" alt="Personal Website" />
-      </div>
-      <div class="tile-body">
-        <div class="tile-kicker">JavaScript / HTML / CSS</div>
-        <div class="tile-headline">Website</div>
-        <p class="tile-copy">Made the old-fashioned way! A quick refresher on web development to reacquaint myself with JS/HTML/CSS and spinning up a new domain and server - plus some fun practicing my web design skills.</p>
-      </div>
-    </div>
-
-    <!-- TILE 2 — Math Flashcards (pair carousel) -->
+    <!-- TILE 2 — Math Flashcards (live, pair carousel) -->
     <div class="news-tile">
       <div class="tile-photo tile-carousel">
         <div class="carousel-track" id="track-math">
@@ -637,8 +589,8 @@
       <div class="tile-body">
         <div class="tile-kicker">iOS / Web App</div>
         <div class="tile-headline">Math Flashcards</div>
-        <p class="tile-copy">I made an Android version of this mobile-app ~12 years ago. I have always been passionate about education technology and wanted to build a tool that kids could use to practice 
-          some basic arithmetic. I reworked the Android application into an iOS version where you can select from Addition, Subtraction, Multiplication and Division with adjustable difficulty settings. I also included some 
+        <p class="tile-copy">I made an Android version of this mobile-app ~12 years ago. I have always been passionate about education technology and wanted to build a tool that kids could use to practice
+          some basic arithmetic. I reworked the Android application into an iOS version where you can select from Addition, Subtraction, Multiplication and Division with adjustable difficulty settings. I also included some
           other challenge modes (percentages, square roots, order of operations) and allow users to save test results and high scores.
         </p>
         <a href="/math-counts/" target="_blank" rel="noopener" class="tile-cta">
@@ -647,7 +599,53 @@
       </div>
     </div>
 
-    
+    <!-- TILE 1 — Food Recs (single photo carousel) -->
+    <div class="news-tile">
+      <div class="tile-photo tile-carousel">
+        <div class="carousel-track" id="track-food">
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/food-recs-1.png" alt="" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/food-recs-2.png" alt="" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/food-recs-3.png" alt="" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/food-recs-4.png" alt="" />
+          </div>
+        </div><!-- closes carousel-track -->
+        <button class="carousel-btn carousel-prev" onclick="slide('food',-1)">&#8249;</button>
+        <button class="carousel-btn carousel-next" onclick="slide('food', 1)">&#8250;</button>
+        <div class="carousel-dots" id="dots-food">
+          <button class="carousel-dot active" onclick="goTo('food',0)"></button>
+          <button class="carousel-dot" onclick="goTo('food',1)"></button>
+          <button class="carousel-dot" onclick="goTo('food',2)"></button>
+          <button class="carousel-dot" onclick="goTo('food',3)"></button>
+        </div>
+      </div><!-- closes tile-photo tile-carousel -->
+      <div class="tile-body">
+        <div class="tile-kicker">Web App / JavaScript / APIs</div>
+        <div class="tile-headline">Food Recommendations</div>
+        <p class="tile-copy">A personal project to help me find restaurant recommendations in new cities! I've been wanting to get more experience using Claude code and also practice using APIs again -
+          this web-app primarily uses the Google Maps and Places API to gather and display recommendations using an algorithm to pull top-rated restaurants in the city of your choice. I also built in
+          an "Ask AI" feature using the OpenAI API to provide another way of looking up more niche recommendations.
+        </p>
+      </div>
+    </div>
+
+    <!-- TILE 3 — Website (single photo) -->
+    <div class="news-tile">
+      <div class="tile-photo">
+        <img src="https://joeykubicki.com/photos/website-1.jpg" alt="Personal Website" />
+      </div>
+      <div class="tile-body">
+        <div class="tile-kicker">JavaScript / HTML / CSS</div>
+        <div class="tile-headline">Website</div>
+        <p class="tile-copy">Made the old-fashioned way! A quick refresher on web development to reacquaint myself with JS/HTML/CSS and spinning up a new domain and server - plus some fun practicing my web design skills.</p>
+      </div>
+    </div>
 
   </div><!-- closes newspaper-grid -->
 </section>
