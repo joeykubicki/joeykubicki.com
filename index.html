@@ -79,10 +79,11 @@
   <!-- ── PROJECT DIRECTORY (fixed, outside .section so its tab fade-in transform can't hijack position:fixed) ── -->
   <nav class="project-directory" id="project-directory" aria-label="Project directory">
     <div class="project-directory-label">Directory</div>
-    <a href="#tile-travel-tracker" class="project-directory-link active">Travel Tracker</a>
-    <a href="#tile-math" class="project-directory-link">Math Flashcards</a>
+    <a href="#tile-api-lab" class="project-directory-link active">API Lab</a>
+    <a href="#tile-travel-tracker" class="project-directory-link">Travel Tracker (live)</a>
+    <a href="#tile-math" class="project-directory-link">Math Flashcards (live)</a>
     <a href="#tile-food" class="project-directory-link">Food Recommendations</a>
-    <a href="#tile-website" class="project-directory-link">Website</a>
+    <a href="#tile-website" class="project-directory-link">Website (live)</a>
   </nav>
 
   <!-- ── MAIN ── -->
@@ -545,6 +546,36 @@
   </div>
 
   <div class="newspaper-grid">
+    <!-- TILE — API Lab (single photo carousel) -->
+    <div class="news-tile" id="tile-api-lab">
+      <div class="tile-photo tile-carousel">
+        <div class="carousel-track" id="track-api-lab">
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/api-lab-1.png" alt="API Lab" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/api-lab-2.png" alt="API Lab" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/api-lab-3.png" alt="API Lab" />
+          </div>
+        </div><!-- closes carousel-track -->
+        <button class="carousel-btn carousel-prev" onclick="slide('api-lab',-1)">&#8249;</button>
+        <button class="carousel-btn carousel-next" onclick="slide('api-lab', 1)">&#8250;</button>
+        <div class="carousel-dots" id="dots-api-lab">
+          <button class="carousel-dot active" onclick="goTo('api-lab',0)"></button>
+          <button class="carousel-dot" onclick="goTo('api-lab',1)"></button>
+          <button class="carousel-dot" onclick="goTo('api-lab',2)"></button>
+        </div>
+      </div><!-- closes tile-photo tile-carousel -->
+      <div class="tile-body">
+        <div class="tile-kicker">Web App / JavaScript / APIs</div>
+        <div class="tile-headline">API Lab</div>
+        <p class="tile-copy">A playground for exploring public APIs without writing any code. Pick a category — space, weather, national parks, and more — configure the parameters for a request, watch the URL build itself as you fill in the form, and send it to see the raw response come back.
+        </p>
+      </div>
+    </div>
+
     <!-- TILE 0 — Travel Tracker (live) -->
 <div class="news-tile" id="tile-travel-tracker">
   <div class="tile-photo">
