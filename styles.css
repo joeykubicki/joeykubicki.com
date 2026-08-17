@@ -802,3 +802,30 @@ nav {
   transition: background 0.2s;
 }
 .tile-cta:hover { background: var(--blue-dark); }
+
+/* Larger CTA variant, centered under a pointing hint */
+.tile-cta-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.tile-cta-hint {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--blue-mid);
+  margin-bottom: -6px;
+}
+
+.tile-cta-arrow { color: var(--blue-mid); flex-shrink: 0; }
+
+.tile-cta-lg {
+  margin-top: 14px;
+  padding: 13px 26px;
+  font-size: 0.95rem;
+}
