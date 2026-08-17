@@ -805,13 +805,18 @@ nav {
 
 /* Larger CTA variant, centered under a pointing hint */
 .tile-cta-row {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 16px;
+  padding-top: 30px;
 }
 
 .tile-cta-hint {
+  position: absolute;
+  top: 0;
+  left: 4%;
   display: flex;
   align-items: center;
   gap: 2px;
@@ -819,7 +824,7 @@ nav {
   font-style: italic;
   font-size: 0.88rem;
   color: var(--blue-mid);
-  margin-bottom: -6px;
+  white-space: nowrap;
 }
 
 .tile-cta-arrow { color: var(--blue-mid); flex-shrink: 0; }
