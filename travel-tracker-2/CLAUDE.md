@@ -43,13 +43,14 @@ Vanilla HTML/CSS/JS, no framework, no build step. ES modules. Leaflet 1.9.4 (CDN
 - `viewFitted` per-view flags: auto-fit/zoom ONLY on first render or tab switch — NEVER on a visited/memory refresh (toggling a place must not move the viewport). Gate any re-fit behind these.  
 - Alaska is scaled in PROJECTED mercator-y space (not raw degrees) to keep its shape; Hawaii is shifted. Don't simplify these to degree math. Park pins for AK/HI/territories have matching transforms.  
 - Countries default view is deliberately one zoom step in from the full world (Antarctica below fold), done with `animate:false` so it lands identically every time.  
+- Country pins render only past `COUNTRY_PIN_MIN_ZOOM` (the zoomed-out world view is colour-fill only). `syncCountryPins()` adds/removes the whole set on `zoomend`; `renderCountriesMap` builds the markers but does NOT add them to the map itself.  
 - Visited-driven visuals must route through `activeVisited()` / `regionFill()` / `compareClass()`, not `state.visited` directly, or guest/compare modes break.
 
 ## External data sources
 
 - States GeoJSON: `cdn.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json`  
-- Countries GeoJSON: `cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json`  
-- Cached in localStorage under `expedition.cache.v2` (bump the suffix \+ clean old key if source changes).  
+- Countries: **`countries-197.geojson`** — a local, committed file, not a CDN fetch. 197 sovereign states (names match `197_countries.md` verbatim, and are the identity keys stored in Firestore) + 3 non-sovereign extras flagged `sovereign: false` (Greenland, Puerto Rico, Antarctica) that stay clickable but are excluded from the `/ 197` stat. Regenerate with **`node tools/build-countries.mjs`** (pulls Natural Earth 1:50m, filters, trims precision). Editing the country set = edit `197_countries.md` + `NAME_MAP` in that script, rerun, commit the `.geojson`.  
+- GeoJSON is cached in localStorage under `CACHE_KEY` (currently `expedition.cache.v3`). **Bump the suffix + add the old `.countries`/`.states` keys to `cleanupOldCache()` whenever a source changes.** `app.js` also runs a one-time `normalizeCountryNames()` migration (`COUNTRY_RENAMES` map) so visited/bucket/memory entries saved under pre-v3 names (`Turkey`→`Türkiye`, `Czech Republic`→`Czechia`, `West Bank`→`Palestine`, …) carry over; it re-saves only the doc(s) that moved.  
 - The 63 National Parks are a hardcoded array in `app.js` (source of truth; manual edit to change).
 
 ## UI / design principles

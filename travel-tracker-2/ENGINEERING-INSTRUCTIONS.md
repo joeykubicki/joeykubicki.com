@@ -62,12 +62,19 @@ GitHub → Cloudflare. Optimize for changes he can apply and verify himself.
   in EPSG:3857 Web Mercator.
 - **GeoJSON — states:** `cdn.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json`
   (property: `name`).
-- **GeoJSON — countries:** `cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json`
-  (~177 countries, property normalized to `name`). CACHE_KEY is `expedition.cache.v2` — bump the
-  version suffix if you ever switch the country source, and clean up the old cache key.
-- Both GeoJSON files are **fetched once, then cached in localStorage** to avoid re-downloading.
-  Fetch is wrapped in `Promise.allSettled` so one failing source still renders the other; total
-  failure shows a "Could not load map data / Reload" panel.
+- **Countries:** `countries-197.geojson` — a **local committed file** (`SOURCES.countries` resolves
+  it via `import.meta.url`), not a CDN fetch. 197 sovereign states (names verbatim from
+  `197_countries.md`, and the identity keys stored in Firestore) + 3 extras flagged
+  `sovereign: false` (Greenland, Puerto Rico, Antarctica) that stay clickable but don't count toward
+  `/ 197`. Regenerate: `node tools/build-countries.mjs` (Natural Earth 1:50m → filter → trim). To
+  change the set: edit `197_countries.md` and `NAME_MAP` in the script, rerun, commit the `.geojson`.
+- CACHE_KEY is `expedition.cache.v3` — **bump the suffix and add the stale `.states`/`.countries`
+  keys to `cleanupOldCache()` whenever a source changes.** A one-time `normalizeCountryNames()`
+  migration (`COUNTRY_RENAMES`) remaps visited/bucket/memory entries stored under pre-v3 country
+  names and re-saves only the doc(s) that moved.
+- The states GeoJSON is **fetched once, then cached in localStorage**; the countries file is read
+  from disk and cached the same way. Fetch is wrapped in `Promise.allSettled` so one failing source
+  still renders the other; total failure shows a "Could not load map data / Reload" panel.
 - **Parks list is hardcoded** in `app.js` — the 63 US National Parks with lat/lng + display state.
   Alaska/Hawaii/territory parks use manual display overrides. This is source-of-truth data; if the
   Park Service adds a 64th park, it's a manual array edit.

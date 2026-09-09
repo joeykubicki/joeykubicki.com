@@ -45,14 +45,21 @@ import {
   // ============================================================
   const SOURCES = {
     states:    'https://cdn.jsdelivr.net/gh/PublicaMundi/MappingAPI@master/data/geojson/us-states.json',
-    // ~250 KB — fast to load, ~177 countries, property: `name`
-    countries: 'https://cdn.jsdelivr.net/gh/johan/world.geo.json@master/countries.geo.json'
+    // Local, committed file — 197 sovereign countries (names match
+    // 197_countries.md verbatim) plus 3 non-sovereign extras that stay
+    // clickable but don't count toward the total (Greenland, Puerto Rico,
+    // Antarctica, flagged `sovereign: false`). Regenerate: tools/build-countries.mjs
+    countries: new URL('./countries-197.geojson', import.meta.url).href
   };
 
   const STORAGE_KEY = 'expedition.v1';
-  const CACHE_KEY   = 'expedition.cache.v2'; // v1 used a different country source
+  const CACHE_KEY   = 'expedition.cache.v3'; // bump when a *_SOURCES_ dataset changes (v1/v2 used other country data)
 
   const STATE_EXCLUDE = new Set(['District of Columbia', 'Puerto Rico']);
+
+  // Country pins are hidden on the zoomed-out world view (just the colour fill
+  // shows there) and appear once you zoom in past this level. Tune by eye.
+  const COUNTRY_PIN_MIN_ZOOM = 4;
 
   // Manual display positions for parks that don't fit on the lower-48 map
   // (territories — placed as small insets near the bottom)
@@ -371,11 +378,21 @@ import {
         // Normal path — read both split docs.
         applyMapData(mapSnap.data());
         applyPrivateData(userData || {});
+        // Country-dataset reconciliation: if any saved name changed spelling,
+        // remap it in memory and re-save just the doc(s) that moved.
+        const moved = normalizeCountryNames();
+        if (moved.map)  { dirty.map = true; }
+        if (moved.priv) { dirty.priv = true; }
+        if (moved.map || moved.priv) {
+          console.info('[Expedition] reconciled country names to the 197 dataset.');
+          scheduleCloudSave();
+        }
       } else if (isOldSingleDoc) {
         // ---- MIGRATION: split the old monolithic doc ----
         // 1) Load everything from the old doc into memory.
         applyMapData(userData);          // visited arrays (shareEnabled/token absent → defaults)
         applyPrivateData(userData);      // memories (savedFriends absent → [])
+        normalizeCountryNames();         // fold the country renames into the writes below
         // 2) Write the new MAP doc first and confirm it lands.
         await setDoc(mapDocRef(), serializeMap());
         // 3) Overwrite the private doc with the clean private-only shape,
@@ -575,12 +592,18 @@ import {
     if (!mapSnap.exists()) return null;
     const data = mapSnap.data();
     if (!data.shareEnabled) return null;          // sharing turned off
+    // Their doc may still hold pre-197 country names if they haven't opened the
+    // app since the swap — remap for display (read-only, nothing persisted).
+    const visited = parseVisited(data);
+    const bucket  = parseBucket(data);
+    renameCountrySet(visited.countries);
+    renameCountrySet(bucket.countries);
     return {
       uid,
       token,
       name: data.displayName || 'Explorer',
-      visited: parseVisited(data),
-      bucket: parseBucket(data)
+      visited,
+      bucket
     };
   }
 
@@ -830,6 +853,58 @@ import {
   // ============================================================
   // STORAGE
   // ============================================================
+
+  // One-time reconciliation for the country dataset swap: the map moved from
+  // johan/world.geo.json (180 features, older English names) to the local
+  // 197-country file, and ~12 names changed spelling. Remap saved data so
+  // existing check-marks, bucket entries and memories carry over.
+  // Non-destructive: names with no mapping (e.g. the dropped "Northern Cyprus")
+  // are left untouched in storage — they simply won't render unless re-added.
+  const COUNTRY_RENAMES = {
+    'United States of America':     'United States',
+    'The Bahamas':                  'Bahamas',
+    'United Republic of Tanzania':  'Tanzania',
+    'Czech Republic':               'Czechia',
+    'Turkey':                       'Türkiye',
+    'Swaziland':                    'Eswatini',
+    'East Timor':                   'Timor-Leste',
+    'Macedonia':                    'North Macedonia',
+    'Ivory Coast':                  'Côte d’Ivoire',
+    'Republic of Serbia':           'Serbia',
+    'Guinea Bissau':                'Guinea-Bissau',
+    'West Bank':                    'Palestine'
+  };
+
+  // Rename old country names in a visited/bucket Set in place. Returns true if
+  // anything moved.
+  function renameCountrySet(set) {
+    let changed = false;
+    for (const [oldName, newName] of Object.entries(COUNTRY_RENAMES)) {
+      if (set.has(oldName)) {
+        set.delete(oldName);
+        set.add(newName);
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
+  // Apply COUNTRY_RENAMES across the in-memory state. Returns which docs moved
+  // so the caller can persist only those.
+  function normalizeCountryNames() {
+    const visitedMoved = renameCountrySet(state.visited.countries);
+    const bucketMoved  = renameCountrySet(state.bucket.countries);
+    let privMoved = false;
+    const mem = state.memories.countries || {};
+    for (const [oldName, newName] of Object.entries(COUNTRY_RENAMES)) {
+      if (mem[oldName] == null) continue;
+      if (mem[newName] == null) mem[newName] = mem[oldName];  // don't clobber
+      delete mem[oldName];
+      privMoved = true;
+    }
+    return { map: visitedMoved || bucketMoved, priv: privMoved };
+  }
+
   // Local (signed-out) persistence — unchanged from the original app
   function loadLocal() {
     try {
@@ -847,6 +922,8 @@ import {
           }
         });
       }
+      const moved = normalizeCountryNames();
+      if (moved.map || moved.priv) saveLocal();
     } catch (e) { console.warn('load failed', e); }
   }
 
@@ -889,8 +966,12 @@ import {
   }
 
   function cleanupOldCache() {
-    // remove obsolete v1 cache (large countries file from previous version)
-    ['expedition.cache.v1.states', 'expedition.cache.v1.countries'].forEach(k => {
+    // Remove obsolete GeoJSON caches from previous country datasets:
+    //   v1 — a large world file; v2 — johan/world.geo.json (180 features).
+    [
+      'expedition.cache.v1.states', 'expedition.cache.v1.countries',
+      'expedition.cache.v2.states', 'expedition.cache.v2.countries'
+    ].forEach(k => {
       try { localStorage.removeItem(k); } catch (e) { /* ignore */ }
     });
   }
@@ -1050,9 +1131,15 @@ import {
       attributionControl: true,
       worldCopyJump: false,
       minZoom: 1,
-      maxZoom: 8
+      maxZoom: 8,
+      // Render vector layers well beyond the viewport so the map stays fully
+      // drawn while you drag. padding:2 = 2x the viewport added on every side,
+      // more than a single drag gesture can ever expose. Without this the SVG
+      // is only redrawn on moveend and you see blank space mid-drag.
+      renderer: L.svg({ padding: 2 })
     });
     map.setView([39, -96], 4);
+    map.on('zoomend', syncCountryPins);
   }
 
   function clearLayers() {
@@ -1234,7 +1321,8 @@ import {
         interactive: false,
         keyboard: false
       });
-      pin.addTo(map);
+      // Not added to the map here — syncCountryPins() adds/removes the whole
+      // set based on zoom, so the world view stays a clean colour fill.
       countryPins.push(pin);
     });
 
@@ -1247,6 +1335,20 @@ import {
       map.setZoom(map.getZoom() + 1, { animate: false });
       viewFitted.countries = true;
     }
+
+    syncCountryPins();
+  }
+
+  // Country pins clutter the zoomed-out world view, so only show them once the
+  // user has zoomed in past COUNTRY_PIN_MIN_ZOOM. Called on every zoomend and at
+  // the end of renderCountriesMap.
+  function syncCountryPins() {
+    const show = state.view === 'countries' && map.getZoom() >= COUNTRY_PIN_MIN_ZOOM;
+    countryPins.forEach(pin => {
+      const on = map.hasLayer(pin);
+      if (show && !on) pin.addTo(map);
+      else if (!show && on) map.removeLayer(pin);
+    });
   }
 
   function renderParksMap() {
@@ -1643,13 +1745,17 @@ import {
     if (state.view === 'countries' && state.data.countries) {
       return state.data.countries.features
         .filter(f => f.properties.name)
-        .map(f => ({
-          id: f.properties.name,
-          name: f.properties.name,
-          meta: '',
-          visited: activeVisited('countries').has(f.properties.name),
-          bucket: activeBucket('countries').has(f.properties.name)
-        })).sort((a, b) => a.name.localeCompare(b.name));
+        .map(f => {
+          const sovereign = f.properties.sovereign !== false;
+          return {
+            id: f.properties.name,
+            name: f.properties.name,
+            meta: sovereign ? '' : 'territory',
+            sovereign,
+            visited: activeVisited('countries').has(f.properties.name),
+            bucket: activeBucket('countries').has(f.properties.name)
+          };
+        }).sort((a, b) => a.name.localeCompare(b.name));
     }
     return [];
   }
@@ -1740,7 +1846,9 @@ import {
   }
 
   function renderStats() {
-    const items = getCurrentList();
+    // Non-sovereign extras on the countries map (Greenland, Puerto Rico,
+    // Antarctica) are clickable but don't count — so the denominator stays 197.
+    const items = getCurrentList().filter(i => i.sovereign !== false);
     const cat = state.view;
     const labelEl = document.getElementById('statsLabel');
     const numEl = document.getElementById('statsCount');
@@ -1941,7 +2049,7 @@ import {
             Could not load map data
           </strong>
           <span style="font-style:normal;">
-            The app fetches GeoJSON from cdn.jsdelivr.net on first load.
+            The app loads map data (a local file plus a CDN fetch) on first load.
             Check your internet connection and reload.
           </span>
           <button onclick="location.reload()" style="margin-top:16px;padding:8px 16px;background:var(--ink);color:var(--bg-paper);border:none;cursor:pointer;font-family:inherit;text-transform:uppercase;letter-spacing:0.1em;font-size:11px;">
