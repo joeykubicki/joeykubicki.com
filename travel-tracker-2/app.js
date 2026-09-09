@@ -1846,6 +1846,19 @@ import {
 
   document.getElementById('bulkEditBtn').addEventListener('click', toggleBulkEdit);
 
+  document.getElementById('listToggleBtn').addEventListener('click', () => {
+    const layout = document.querySelector('.layout');
+    const btn = document.getElementById('listToggleBtn');
+    const open = layout.classList.toggle('list-open');
+    btn.classList.toggle('is-on', open);
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.textContent = open ? 'Hide Full List' : 'See Full List';
+    // The map pane resizes as the column slides — Leaflet needs to recompute.
+    // Redraw during and just after the 0.35s CSS transition.
+    const ticker = setInterval(() => map.invalidateSize(false), 60);
+    setTimeout(() => clearInterval(ticker), 450);
+  });
+
   document.getElementById('resetBtn').addEventListener('click', () => {
     if (state.guest) return; // can't reset someone else's map
     const labels = { parks: 'national parks', states: 'states', countries: 'countries' };

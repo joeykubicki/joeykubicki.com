@@ -74,6 +74,9 @@
       <div class="map-pane__chrome">
         <span class="map-pane__caption" id="mapCaption">North America</span>
         <div class="map-pane__actions">
+          <button class="list-toggle-btn" id="listToggleBtn" type="button" aria-expanded="false" aria-controls="listPane">
+            See Full List
+          </button>
           <button class="bulk-edit-btn" id="bulkEditBtn" type="button" title="Bulk Edit">
             Bulk Edit
           </button>
@@ -90,7 +93,7 @@
       </div>
     </section>
 
-    <aside class="list-pane" aria-label="List of places">
+    <aside class="list-pane" id="listPane" aria-label="List of places">
       <div class="list-pane__head">
         <label class="search">
           <svg class="search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
