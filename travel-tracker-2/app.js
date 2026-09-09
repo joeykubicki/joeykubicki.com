@@ -1142,6 +1142,20 @@ import {
     map.on('zoomend', syncCountryPins);
   }
 
+  // Frame a view's default extent, the same way for every view. Only ever runs
+  // on a first render or a tab switch (callers gate it behind viewFitted).
+  //  - invalidateSize: Leaflet may hold a stale container size from an earlier
+  //    render; sync it or the fit is computed against the wrong pixel box.
+  //  - animate:false: makes fitBounds synchronous, so getZoom() below is the
+  //    real fitted zoom and not an interpolated mid-animation value.
+  //  - +1: fitBounds snaps DOWN to a whole zoom level, which lands one wheel
+  //    click too far out. Step back in.
+  function frameView(bounds, padding) {
+    map.invalidateSize(false);
+    map.fitBounds(bounds, { padding, animate: false });
+    map.setZoom(map.getZoom() + 1, { animate: false });
+  }
+
   function clearLayers() {
     if (currentLayer)  { map.removeLayer(currentLayer);  currentLayer  = null; }
     if (parkBaseLayer) { map.removeLayer(parkBaseLayer); parkBaseLayer = null; }
@@ -1260,7 +1274,7 @@ import {
       }
     }).addTo(map);
     if (!viewFitted.states) {
-      map.fitBounds(currentLayer.getBounds(), { padding: [20, 20] });
+      frameView(currentLayer.getBounds(), [20, 20]);
       viewFitted.states = true;
     }
   }
@@ -1328,11 +1342,8 @@ import {
 
     if (!viewFitted.countries) {
       // Default view = "one click zoomed in" from the full world, so Antarctica
-      // starts below the fold. Done deterministically (no animation, size synced)
-      // so it lands the same way every time rather than toggling.
-      map.invalidateSize(false);
-      map.fitBounds([[-58, -170], [80, 170]], { padding: [8, 8], animate: false });
-      map.setZoom(map.getZoom() + 1, { animate: false });
+      // starts below the fold, and it lands the same way every time.
+      frameView([[-58, -170], [80, 170]], [8, 8]);
       viewFitted.countries = true;
     }
 
@@ -1400,11 +1411,13 @@ import {
 
     if (!viewFitted.parks) {
       if (parkBaseLayer) {
-        map.fitBounds(parkBaseLayer.getBounds(), { padding: [20, 20] });
+        frameView(parkBaseLayer.getBounds(), [20, 20]);
+        viewFitted.parks = true;
       } else {
+        // Map data not loaded yet (first paint) — frame the lower-48 by hand,
+        // and leave viewFitted false so it re-frames once the states layer lands.
         map.setView([35, -98], 4);
       }
-      viewFitted.parks = true;
     }
   }
 
