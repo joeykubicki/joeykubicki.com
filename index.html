@@ -79,7 +79,8 @@
   <!-- ── PROJECT DIRECTORY (fixed, outside .section so its tab fade-in transform can't hijack position:fixed) ── -->
   <nav class="project-directory" id="project-directory" aria-label="Project directory">
     <div class="project-directory-label">Directory</div>
-    <a href="#tile-api-lab" class="project-directory-link active">API Lab</a>
+    <a href="#tile-study-buddy" class="project-directory-link active">Study Buddy</a>
+    <a href="#tile-api-lab" class="project-directory-link">API Lab</a>
     <a href="#tile-travel-tracker" class="project-directory-link">Travel Tracker (live)</a>
     <a href="#tile-math" class="project-directory-link">Math Flashcards (live)</a>
     <a href="#tile-food" class="project-directory-link">Food Recommendations</a>
@@ -546,6 +547,40 @@
   </div>
 
   <div class="newspaper-grid">
+    <!-- TILE — Study Buddy (single photo carousel) -->
+    <div class="news-tile" id="tile-study-buddy">
+      <div class="tile-photo tile-carousel">
+        <div class="carousel-track" id="track-study-buddy">
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/sb-1.jpg" alt="Study Buddy" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/sb-2.jpg" alt="Study Buddy" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/sb-3.jpg" alt="Study Buddy" />
+          </div>
+          <div class="carousel-slide">
+            <img src="https://joeykubicki.com/photos/sb-4.jpg" alt="Study Buddy" />
+          </div>
+        </div><!-- closes carousel-track -->
+        <button class="carousel-btn carousel-prev" onclick="slide('study-buddy',-1)">&#8249;</button>
+        <button class="carousel-btn carousel-next" onclick="slide('study-buddy', 1)">&#8250;</button>
+        <div class="carousel-dots" id="dots-study-buddy">
+          <button class="carousel-dot active" onclick="goTo('study-buddy',0)"></button>
+          <button class="carousel-dot" onclick="goTo('study-buddy',1)"></button>
+          <button class="carousel-dot" onclick="goTo('study-buddy',2)"></button>
+          <button class="carousel-dot" onclick="goTo('study-buddy',3)"></button>
+        </div>
+      </div><!-- closes tile-photo tile-carousel -->
+      <div class="tile-body">
+        <div class="tile-kicker">Game / React / TypeScript</div>
+        <div class="tile-headline">Study Buddy</div>
+        <p class="tile-copy">An educational game for kids in grades 3–6. Pick a companion creature, complete Challenges across Math, English, Science, and Social Studies, and spend the tokens you earn on your buddy — or take it into battle for XP.
+        </p>
+      </div>
+    </div>
+
     <!-- TILE — API Lab (single photo carousel) -->
     <div class="news-tile" id="tile-api-lab">
       <div class="tile-photo tile-carousel">

@@ -118,4 +118,5 @@ initCarousel('food', 4);
 initCarousel('math', 2);
 initCarousel('bandit', 3);
 initCarousel('api-lab', 3);
+initCarousel('study-buddy', 4);
 
