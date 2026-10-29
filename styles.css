@@ -884,6 +884,13 @@ nav {
   display: inline-flex;
 }
 
+/* Two CTAs side by side; wraps to stacked on narrow tiles */
+.tile-cta-group {
+  flex-wrap: wrap;
+  justify-content: center;
+  column-gap: 12px;
+}
+
 .tile-cta-hint {
   position: absolute;
   top: -30px;
